@@ -1,6 +1,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,800&family=Manrope:wght@400;500;600;700;800&display=swap');
 
 .hidden{display:none!important}
+.tw-boundary{position:fixed;inset:0;z-index:70;pointer-events:none;display:grid;place-items:center}
+.tw-boundary b{font-family:'Barlow Condensed',Impact,'Arial Narrow',sans-serif;font-style:italic;font-weight:800;font-size:clamp(90px,26vw,220px);text-transform:uppercase;line-height:1;animation:tw-boundary-pop 1.05s cubic-bezier(.2,.9,.3,1.1) forwards;text-shadow:0 10px 60px #0009}
+.tw-boundary-4 b{color:#59c6ff;filter:drop-shadow(0 0 30px #59c6ffb3)}
+.tw-boundary-6 b{color:#ffb224;filter:drop-shadow(0 0 34px #ffb224cc)}
+@keyframes tw-boundary-pop{0%{transform:scale(.4) rotate(-6deg);opacity:0}25%{transform:scale(1.08) rotate(-2deg);opacity:1}75%{opacity:1}100%{transform:scale(1.2) rotate(-2deg);opacity:0}}
+@media(prefers-reduced-motion:reduce){.tw-boundary{place-items:start center;padding-top:90px}.tw-boundary b{animation:none!important;font-size:36px;padding:12px 20px;border-radius:14px;background:#05120df2;filter:none;transform:none}}
 .tw-innings-summary{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;color:var(--muted);font-size:12px;font-weight:700}.tw-innings-summary>div{padding:6px 10px;border:1px solid var(--line);border-radius:8px;overflow-wrap:anywhere}
 /* Shared presentation only; scoring and persistence remain in their pages. */
 .tw-result{margin:18px 0 0;padding:16px 18px;border:1px solid #c8f43a66;border-radius:14px;background:linear-gradient(135deg,#c8f43a22,#c8f43a0a);color:#e2ff7a;font-size:clamp(18px,3vw,24px);font-weight:800;line-height:1.4;overflow-wrap:anywhere;text-align:center}

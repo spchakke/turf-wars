@@ -342,6 +342,7 @@
 
   <script type="module">
     import { db } from "./firebase-client.js";
+    import { createBoundaryObserver } from "./boundary-effects.js";
     import { ref, onValue }
       from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
@@ -351,6 +352,7 @@
     let finished = false;
 
     const $ = (id) => document.getElementById(id);
+    const observeBoundary = createBoundaryObserver();
 
     function showError(message) {
       $("scoreboard").classList.add("hidden");
@@ -497,6 +499,7 @@
       if (match.finished && connected) {
         setText("connectionStatus", "MATCH FINISHED");
       }
+      observeBoundary(match);
     }
 
     $("joinForm").addEventListener("submit", event => {

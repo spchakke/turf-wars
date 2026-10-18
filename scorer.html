@@ -209,6 +209,7 @@
 
 <script type="module">
 import { app, db } from "./firebase-client.js";
+import { flashBoundary, clearBoundaryEffect } from "./boundary-effects.js";
 import { ref, update, push, onValue, serverTimestamp } from
   "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 import { getAuth, signInAnonymously } from
@@ -509,6 +510,7 @@ function scoreRuns(runs) {
   message = "Match in progress";
   checkInningsEnd();
   save();
+  flashBoundary(runs);
 }
 
 function addExtra(type) {
@@ -596,6 +598,7 @@ function resultMessage() {
 
 function undo() {
   if (otherTabChanged) return;
+  clearBoundaryEffect();
   if (!undoStack.length) {
     $("syncMessage").textContent = "There is no action to undo.";
     return;
@@ -705,6 +708,7 @@ $("newBtn").addEventListener("click", () => {
   if (!confirm("Start another match? The current online match will remain available to spectators.")) {
     return;
   }
+  clearBoundaryEffect();
   match = null;
   cloudMatchId = null;
   undoStack = [];

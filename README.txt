@@ -9,7 +9,8 @@ FILES TO DEPLOY
 - history.html: public match list
 - theme.css: shared visual styling
 - firebase-client.js: shared Firebase initialization
-Keep all six files together at the repository root. Do not deploy only index.html.
+- boundary-effects.js: four/six animations and spectator event detection
+Keep all seven files together at the repository root. Do not deploy only index.html.
 scorer-backup.html is a legacy local-only scorer and is not linked by the app.
 
 LOCAL PREVIEW
@@ -36,6 +37,8 @@ no-ball/bat runs, byes/leg-byes, or configurable team size.
 
 DATA AND RECOVERY
 The current match and Undo stack are stored under turfWarsScorerV3 in localStorage.
+Four/six overlays appear for new boundaries; old deliveries do not animate on
+initial spectator load. Reduced motion uses a small static notification.
 All deliveries are retained for matches scored with this version. Previously
 truncated deliveries cannot be recovered. Download match backup exports a JSON
 copy; automatic backup import is not implemented. Another tab changing browser

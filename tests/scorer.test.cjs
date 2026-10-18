@@ -9,6 +9,7 @@ const source = html.slice(html.indexOf('const $ ='), html.indexOf('\ndocument.qu
 
 function harness() {
   const writes = [];
+  const flashes = [];
   const atomicWrites = [];
   const elements = new Map();
   const element = () => {
@@ -32,6 +33,8 @@ function harness() {
       atomicWrites.push(payloads);
       for (const [destination, payload] of Object.entries(payloads)) writes.push({ destination, payload });
     },
+    flashBoundary: runs => { if (runs === 4 || runs === 6) flashes.push(runs); },
+    clearBoundaryEffect() {},
     serverTimestamp: () => Date.now(),
     console,
   });
@@ -39,7 +42,7 @@ function harness() {
   const run = code => vm.runInContext(code, context);
   run(`match = { names: ['A', 'B'], maxOvers: 1, current: 0,
     target: null, finished: false, innings: [newInnings(), newInnings()] };`);
-  return { run, writes, atomicWrites, elements };
+  return { run, writes, atomicWrites, elements, flashes };
 }
 
 for (const [name, setup, action] of [
@@ -128,7 +131,7 @@ test('spectator result banner displays the winner and clears on a reopened match
         toggle(c, enabled) { enabled ? classes.add(c) : classes.delete(c); },
         contains: c => classes.has(c) } };
   }
-  const context = vm.createContext({ document: {
+  const context = vm.createContext({ createBoundaryObserver: () => () => {}, document: {
     getElementById(id) { if (!elements.has(id)) elements.set(id, element()); return elements.get(id); },
     createElement: element,
   } });
@@ -296,4 +299,16 @@ test('Undo restores the innings-break message, not a generic progress message', 
   const { run, elements } = harness();
   run('scoreRuns(4); endInnings(); scoreRuns(1); undo();');
   assert.equal(elements.get('matchStatus').textContent, 'First innings complete. Target: 5');
+});
+
+
+test('scorer celebrates accepted boundaries, including innings-ending ones, but not Undo or blocked scoring', () => {
+  const { run, flashes } = harness();
+  run('scoreRuns(4); scoreRuns(6); scoreRuns(1); undo();');
+  assert.deepEqual(flashes, [4, 6]);
+  run('match.innings[0].legalBalls=5; scoreRuns(4);');
+  assert.equal(run('match.current'), 1);
+  assert.deepEqual(flashes, [4, 6, 4]);
+  run('match.finished=true; scoreRuns(6);');
+  assert.deepEqual(flashes, [4, 6, 4]);
 });
