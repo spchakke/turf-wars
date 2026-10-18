@@ -1,0 +1,350 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Turf Wars | Live Scorer</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #101713;
+      --panel: #1b2720;
+      --green: #b8f34a;
+      --text: #f5f7f4;
+      --muted: #a8b5aa;
+      --border: #354338;
+      --red: #ff7373;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font: 16px/1.5 system-ui, sans-serif;
+    }
+    header {
+      padding: 20px; border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap;
+    }
+    header strong { font-size: 22px; letter-spacing: 1px; }
+    header span { color: var(--green); font-size: 12px; }
+    main { max-width: 760px; margin: auto; padding: 18px; }
+    .panel {
+      background: var(--panel); border: 1px solid var(--border);
+      border-radius: 16px; padding: 18px; margin-bottom: 16px;
+    }
+    h2 { margin: 0 0 14px; font-size: 18px; }
+    label { display: block; color: var(--muted); font-size: 13px; margin-bottom: 5px; }
+    input, select {
+      width: 100%; padding: 12px; border-radius: 9px;
+      border: 1px solid var(--border); background: var(--bg);
+      color: var(--text); font: inherit; margin-bottom: 12px;
+    }
+    button {
+      cursor: pointer; border: 1px solid var(--border);
+      background: #2b392e; color: var(--text);
+      padding: 13px 10px; border-radius: 10px;
+      font: inherit; font-weight: 700;
+    }
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 2px solid var(--green); outline-offset: 2px;
+    }
+    button.primary { background: var(--green); color: #15200e; border-color: var(--green); }
+    button:disabled { opacity: .35; cursor: not-allowed; }
+    .setup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .score { text-align: center; padding: 22px 10px; }
+    .score .runs { font-size: clamp(44px, 12vw, 68px); font-weight: 800; line-height: 1.2; }
+    .score .overs { font-size: 19px; color: var(--green); margin-top: 5px; }
+    .muted { color: var(--muted); font-size: 13px; }
+    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 18px; }
+    .stat { background: var(--bg); border-radius: 10px; padding: 10px 5px; text-align: center; }
+    .stat strong { display: block; font-size: 20px; }
+    .stat span { color: var(--muted); font-size: 12px; }
+    .buttons { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+    .buttons button { min-height: 54px; font-size: 19px; }
+    .buttons .extra { font-size: 14px; }
+    .wide { width: 100%; }
+    .danger { color: var(--red); }
+    .message { margin-top: 12px; font-weight: 700; color: var(--green); }
+    .hidden { display: none !important; }
+    .history { padding-left: 20px; }
+    .history li { margin: 7px 0; }
+    @media (max-width: 460px) {
+      main { padding: 12px; }
+      .panel { padding: 14px; }
+      header { padding: 16px; }
+      .setup-grid { grid-template-columns: 1fr; gap: 0; }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <strong>🏏 TURF WARS</strong>
+  <span>LIVE SCORER · BETA</span>
+</header>
+
+<main>
+  <section class="panel" id="setup">
+    <h2>Create a match</h2>
+    <div class="setup-grid">
+      <div>
+        <label for="teamA">Team batting first</label>
+        <input id="teamA" value="Warriors" maxlength="40">
+      </div>
+      <div>
+        <label for="teamB">Opposition</label>
+        <input id="teamB" value="Strikers" maxlength="40">
+      </div>
+    </div>
+    <label for="maxOvers">Overs per innings</label>
+    <select id="maxOvers">
+      <option>5</option><option selected>10</option><option>12</option>
+      <option>15</option><option>20</option><option>25</option>
+      <option>50</option>
+    </select>
+    <button class="primary wide" id="start">Start match</button>
+  </section>
+
+  <section id="game" class="hidden">
+    <div class="panel score">
+      <div class="muted" id="inningsLabel">1st innings</div>
+      <h2 id="battingName">Warriors</h2>
+      <div class="runs" id="total">0/0</div>
+      <div class="overs" id="overDisplay">Overs 0.0</div>
+      <div class="stats">
+        <div class="stat"><strong id="runRate">0.00</strong><span>Run rate</span></div>
+        <div class="stat"><strong id="extras">0</strong><span>Extras</span></div>
+        <div class="stat"><strong id="remaining">10</strong><span>Overs limit</span></div>
+      </div>
+      <p class="muted" id="targetInfo">Innings in progress</p>
+      <div class="message" id="message" role="status" aria-live="polite"></div>
+    </div>
+
+    <div class="panel">
+      <h2>Record runs</h2>
+      <div class="buttons">
+        <button data-run="0">0</button>
+        <button data-run="1">1</button>
+        <button data-run="2">2</button>
+        <button data-run="3">3</button>
+        <button data-run="4">4</button>
+        <button data-run="6">6</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>Extras</h2>
+      <div class="buttons">
+        <button class="extra" data-extra="wide">Wide +1</button>
+        <button class="extra" data-extra="noball">No-ball +1</button>
+        <button class="extra" data-extra="bye">Bye</button>
+        <button class="extra" data-extra="legbye">Leg-bye</button>
+        <button class="extra" data-extra="wicket">Wicket</button>
+        <button class="extra" id="endInnings">End innings</button>
+      </div>
+      <p class="muted">Wide and no-ball add one penalty run. Byes and leg-byes ask for the runs completed.</p>
+    </div>
+
+    <div class="panel">
+      <h2>Recent deliveries</h2>
+      <ol class="history" id="history"><li>No deliveries yet.</li></ol>
+      <button class="wide" id="undo">↶ Undo last delivery</button>
+    </div>
+
+    <button class="wide danger" id="reset">Reset match</button>
+  </section>
+</main>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  let match = null;
+
+  function freshInnings(batting, bowling) {
+    return {
+      batting, bowling, runs: 0, wickets: 0, balls: 0, extras: 0,
+      finished: false, history: []
+    };
+  }
+
+  function overs() {
+    return match.innings[match.current];
+  }
+
+  function legalBall() {
+    return overs().balls >= match.maxOvers * 6;
+  }
+
+  function addDelivery({ bat = 0, extra = 0, type = "run", legal = true, wicket = false }) {
+    const inn = overs();
+    if (inn.finished || match.finished) return;
+    if (legal && legalBall()) return show("Over limit reached. End the innings.");
+
+    const previous = JSON.stringify(match);
+    inn.runs += bat + extra;
+    inn.extras += extra;
+    if (legal) inn.balls++;
+    if (wicket) inn.wickets++;
+    inn.history.unshift({
+      label: type, runs: bat + extra, bat, extra, legal, wicket,
+      over: Math.floor((inn.balls - (legal ? 1 : 0)) / 6),
+      ball: inn.balls % 6
+    });
+    if (inn.history.length > 100) inn.history.pop();
+
+    match.undoStack.push(previous);
+    if (inn.wickets >= 10) inn.finished = true;
+    if (legalBall()) inn.finished = true;
+
+    if (match.current === 1 && inn.runs >= match.target) {
+      inn.finished = true;
+      match.finished = true;
+      show(inn.batting + " win!");
+    } else if (inn.finished && match.current === 0) {
+      show("First innings complete. Start the chase.");
+    } else if (inn.finished && match.current === 1) {
+      finishChase();
+    } else {
+      show(type === "run" ? "Runs recorded." : type + " recorded.");
+    }
+    save();
+    render();
+  }
+
+  function finishChase() {
+    const a = match.innings[0], b = match.innings[1];
+    match.finished = true;
+    if (b.runs === a.runs) show("Match tied!");
+    else if (b.runs < a.runs) show(a.batting + " win by " + (a.runs - b.runs) + " runs!");
+  }
+
+  function show(message) { $("message").textContent = message; }
+
+  function save() {
+    try { localStorage.setItem("turfWarsMatch", JSON.stringify(match)); }
+    catch (e) { /* Browser storage may be unavailable. */ }
+  }
+
+  function render() {
+    const inn = overs();
+    $("inningsLabel").textContent = match.current === 0 ? "1st innings" : "2nd innings";
+    $("battingName").textContent = inn.batting;
+    $("total").textContent = inn.runs + "/" + inn.wickets;
+    $("overDisplay").textContent = "Overs " + Math.floor(inn.balls / 6) + "." + (inn.balls % 6);
+    $("runRate").textContent = inn.balls ? (inn.runs / (inn.balls / 6)).toFixed(2) : "0.00";
+    $("extras").textContent = inn.extras;
+    $("remaining").textContent = Math.max(0, match.maxOvers - inn.balls / 6).toFixed(1);
+    $("targetInfo").textContent = match.current === 0
+      ? "Innings in progress"
+      : "Target: " + match.target + " · Need " + Math.max(0, match.target - inn.runs) + " runs";
+    $("history").innerHTML = "";
+    if (!inn.history.length) {
+      $("history").innerHTML = "<li>No deliveries yet.</li>";
+    } else {
+      inn.history.slice(0, 12).forEach(d => {
+        const li = document.createElement("li");
+        li.textContent = d.label + " (+" + d.runs + (d.wicket ? ", wicket" : "") + ")";
+        $("history").appendChild(li);
+      });
+    }
+    document.querySelectorAll("[data-run], [data-extra]").forEach(b => {
+      b.disabled = inn.finished || match.finished;
+    });
+    $("undo").disabled = match.undoStack.length === 0;
+    $("endInnings").disabled = inn.finished || match.finished;
+  }
+
+  function startChase() {
+    if (match.current !== 0 || !overs().finished) return;
+    match.target = match.innings[0].runs + 1;
+    match.current = 1;
+    match.innings.push(freshInnings(match.teamB, match.teamA));
+    show("Chase started. Target: " + match.target);
+    save();
+    render();
+  }
+
+  $("start").addEventListener("click", () => {
+    const teamA = $("teamA").value.trim();
+    const teamB = $("teamB").value.trim();
+    if (!teamA || !teamB || teamA.toLowerCase() === teamB.toLowerCase()) {
+      alert("Enter two different team names.");
+      return;
+    }
+    match = {
+      teamA, teamB, maxOvers: Number($("maxOvers").value),
+      current: 0, target: null, finished: false,
+      innings: [freshInnings(teamA, teamB)], undoStack: []
+    };
+    $("setup").classList.add("hidden");
+    $("game").classList.remove("hidden");
+    show("Match started!");
+    save();
+    render();
+  });
+
+  document.querySelectorAll("[data-run]").forEach(b => {
+    b.addEventListener("click", () => addDelivery({
+      bat: Number(b.dataset.run), type: b.dataset.run + " run" + (b.dataset.run === "1" ? "" : "s")
+    }));
+  });
+
+  document.querySelectorAll("[data-extra]").forEach(b => {
+    b.addEventListener("click", () => {
+      const type = b.dataset.extra;
+      if (type === "wide" || type === "noball") {
+        addDelivery({ extra: 1, type: type === "wide" ? "Wide" : "No-ball", legal: false });
+      } else if (type === "bye" || type === "legbye") {
+        const value = prompt("How many " + (type === "bye" ? "bye" : "leg-bye") + " runs?");
+        if (value === null) return;
+        const runs = Number(value);
+        if (!Number.isInteger(runs) || runs < 0 || runs > 6) return alert("Enter a whole number from 0 to 6.");
+        addDelivery({ extra: runs, type: type === "bye" ? "Bye" : "Leg-bye" });
+      } else if (type === "wicket") {
+        addDelivery({ type: "Wicket", wicket: true });
+      }
+    });
+  });
+
+  $("endInnings").addEventListener("click", () => {
+    if (!confirm("End this innings?")) return;
+    overs().finished = true;
+    if (match.current === 0) {
+      show("First innings ended. Tap End innings again after starting the chase is not required.");
+      $("endInnings").textContent = "Start chase";
+      $("endInnings").disabled = false;
+      $("endInnings").onclick = startChase;
+    } else {
+      finishChase();
+    }
+    save();
+    render();
+  });
+
+  $("endInnings").addEventListener("click", function () {
+    if (match && match.current === 0 && match.innings[0].finished && !match.innings[1]) {
+      this.textContent = "Start chase";
+      this.onclick = startChase;
+    }
+  });
+
+  $("undo").addEventListener("click", () => {
+    if (!match.undoStack.length) return;
+    match = JSON.parse(match.undoStack.pop());
+    $("game").classList.remove("hidden");
+    show("Last delivery undone.");
+    save();
+    render();
+  });
+
+  $("reset").addEventListener("click", () => {
+    if (!confirm("Reset the entire match? This cannot be undone.")) return;
+    localStorage.removeItem("turfWarsMatch");
+    match = null;
+    $("game").classList.add("hidden");
+    $("setup").classList.remove("hidden");
+  });
+})();
+</script>
+</body>
+</html>
