@@ -180,7 +180,9 @@
     if (inn.finished || match.finished) return;
     if (legal && legalBall()) return show("Over limit reached. End the innings.");
 
-    const previous = JSON.stringify(match);
+    const previous = JSON.parse(JSON.stringify(match));
+    delete previous.undoStack;
+    match.undoStack.push(JSON.stringify(previous));
     inn.runs += bat + extra;
     inn.extras += extra;
     if (legal) inn.balls++;
@@ -192,6 +194,7 @@
     });
     if (inn.history.length > 100) inn.history.pop();
 
+    const previous = JSON.stringify(match);
     match.undoStack.push(previous);
     if (inn.wickets >= 10) inn.finished = true;
     if (legalBall()) inn.finished = true;
