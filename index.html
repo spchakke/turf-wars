@@ -31,15 +31,39 @@
 
     a { color: inherit; }
 
-    .nav {
-      max-width: 1120px;
-      margin: auto;
-      padding: 20px 24px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-    }
+
+.nav {
+  max-width: 1120px;
+  margin: auto;
+  padding: 20px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  border-bottom: 1px solid rgba(166, 179, 199, 0.12);
+}
+
+.nav .logo {
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  font-size: 22px;
+}
+
+.nav > a:last-child {
+  color: var(--text);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 15px;
+  font-weight: 700;
+  transition: border-color 0.2s ease, color 0.2s ease;
+}
+
+.nav > a:last-child:hover {
+  color: var(--green);
+  border-color: var(--green);
+}
+
 
     .logo {
       font-weight: 900;
