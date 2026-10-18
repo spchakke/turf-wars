@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Turf Wars | Live Score</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #101820;
+      color: #fff;
+      padding: 20px;
+    }
+    .container { max-width: 650px; margin: 0 auto; }
+    .header { text-align: center; margin-bottom: 24px; }
+    .header h1 { color: #f7c843; margin-bottom: 6px; }
+    .card {
+      background: #1b2836;
+      border: 1px solid #34475a;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+    .label { color: #aab8c5; font-size: 13px; }
+    .score {
+      font-size: clamp(38px, 10vw, 58px);
+      font-weight: bold;
+      margin: 10px 0;
+    }
+    .details { color: #c6d1dc; line-height: 1.8; }
+    .teams {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .team {
+      background: #263748;
+      border-radius: 12px;
+      padding: 14px;
+      overflow-wrap: anywhere;
+    }
+    .team h2 { font-size: 16px; margin: 0; }
+    .team p { font-size: 24px; font-weight: bold; margin: 10px 0 0; }
+    #status { color: #f7c843; font-size: 14px; }
+    #recent { line-height: 1.9; overflow-wrap: anywhere; }
+    .footer { text-align: center; color: #9aa8b5; font-size: 12px; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header class="header">
+      <h1>🏏 TURF WARS</h1>
+      <div>LIVE MATCH SCORE</div>
+      <p id="status">Connecting to live scoreboard…</p>
+    </header>
+
+    <section class="card">
+      <div class="label">CURRENT INNINGS</div>
+      <div class="score" id="score">0/0</div>
+      <div class="details">
+        <div>Overs: <strong id="overs">0.0</strong></div>
+        <div>Run rate: <strong id="rate">0.00</strong></div>
+        <div id="targetRow" hidden>Target: <strong id="target">—</strong></div>
+        <div id="result"></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="teams">
+        <div class="team">
+          <h2 id="team1">Team 1</h2>
+          <p id="score1">—</p>
+        </div>
+        <div class="team">
+          <h2 id="team2">Team 2</h2>
+          <p id="score2">—</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Recent deliveries</h3>
+      <div id="recent">Waiting for match data…</div>
+    </section>
+
+    <p class="footer">Turf Wars • Live updates powered by Firebase</p>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from
+      "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+    import { getDatabase, ref, onValue } from
+      "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyC000ztA_x_KxGnKva4zqBZ7DCwOhQZQA",
+      authDomain: "turf-wars-b6ea0.firebaseapp.com",
+      databaseURL: "https://turf-wars-b6ea0-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "turf-wars-b6ea0",
+      storageBucket: "turf-wars-b6ea0.firebasestorage.app",
+      messagingSenderId: "231555430819",
+      appId: "1:231555430819:web:e02b15ad623d62031a8216"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    // The first version reads the current match.
+    // We will align this path with the scorer in the next step.
+    const matchRef = ref(db, "matches/current");
+
+    const setText = (id, value) => {
+      document.getElementById(id).textContent = value ?? "—";
+    };
+
+    onValue(matchRef, (snapshot) => {
+      const data = snapshot.val();
+
+      if (!data) {
+        setText("status", "Waiting for a match to be published.");
+        return;
+      }
+
+      setText("status", "🟢 Live updates connected");
+
+      // These display fields will be mapped to your scorer's data structure.
+      const innings = data.currentInningsData || data.innings || {};
+      const runs = Number(innings.runs ?? data.runs ?? 0);
+      const wickets = Number(innings.wickets ?? data.wickets ?? 0);
+      const balls = Number(innings.balls ?? data.balls ?? 0);
+      const overs = Math.floor(balls / 6) + "." + (balls % 6);
+
+      setText("score", `${runs}/${wickets}`);
+      setText("overs", innings.overs ?? overs);
+      setText("rate", balls ? (runs / (balls / 6)).toFixed(2) : "0.00");
+
+      setText("team1", data.team1Name || data.team1 || "Team 1");
+      setText("team2", data.team2Name || data.team2 || "Team 2");
+
+      const first = data.firstInnings || {};
+      const second = data.secondInnings || {};
+      setText("score1", first.runs != null
+        ? `${first.runs}/${first.wickets ?? 0}` : "—");
+      setText("score2", second.runs != null
+        ? `${second.runs}/${second.wickets ?? 0}` : "—");
+
+      if (data.target != null) {
+        document.getElementById("targetRow").hidden = false;
+        setText("target", data.target);
+      }
+
+      setText("result", data.result || "");
+
+      const recent = data.recentDeliveries || data.recent || [];
+      setText("recent", Array.isArray(recent) && recent.length
+        ? recent.map(item => typeof item === "string"
+          ? item : JSON.stringify(item)).join(" • ")
+        : "No deliveries recorded yet.");
+    }, (error) => {
+      setText("status", "Unable to read live score. Check database rules.");
+      console.error(error);
+    });
+  </script>
+</body>
+</html>
