@@ -180,11 +180,23 @@
 
     .btn:hover { transform: translateY(-2px); }
 
+
     .btn-primary {
       color: #15200e;
       background: var(--green);
       border-color: var(--green);
+      box-shadow: 0 6px 22px rgba(183, 243, 74, 0.12);
+      transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
     }
+    
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(183, 243, 74, 0.24);
+    }
+
 
     .btn-secondary { background: var(--panel); }
 
