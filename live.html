@@ -4,165 +4,510 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Turf Wars | Live Score</title>
+  <meta name="theme-color" content="#101810">
+  <title>Live Score | Turf Wars</title>
+
   <style>
+    :root {
+      --bg: #101810;
+      --panel: #1b261c;
+      --green: #b9f34a;
+      --muted: #a9b5a8;
+      --line: #354435;
+      --white: #f5f8f2;
+    }
+
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
-      font-family: Arial, sans-serif;
-      background: #101820;
-      color: #fff;
-      padding: 20px;
+      background: var(--bg);
+      color: var(--white);
+      font-family: Arial, Helvetica, sans-serif;
     }
-    .container { max-width: 650px; margin: 0 auto; }
-    .header { text-align: center; margin-bottom: 24px; }
-    .header h1 { color: #f7c843; margin-bottom: 6px; }
-    .card {
-      background: #1b2836;
-      border: 1px solid #34475a;
-      border-radius: 16px;
+
+    header {
+      padding: 20px 16px;
+      text-align: center;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      color: var(--green);
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 2px;
+    }
+
+    .subtitle {
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+      letter-spacing: 2px;
+    }
+
+    main {
+      width: min(760px, 100%);
+      margin: 0 auto;
+      padding: 20px 14px 40px;
+    }
+
+    .status-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+
+    .dot {
+      width: 9px;
+      height: 9px;
+      background: var(--green);
+      border-radius: 50%;
+      box-shadow: 0 0 10px #b9f34a80;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
       padding: 20px;
       margin-bottom: 16px;
     }
-    .label { color: #aab8c5; font-size: 13px; }
-    .score {
-      font-size: clamp(38px, 10vw, 58px);
+
+    .section-label {
+      color: var(--muted);
+      font-size: 11px;
       font-weight: bold;
-      margin: 10px 0;
+      letter-spacing: 1.8px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
     }
-    .details { color: #c6d1dc; line-height: 1.8; }
+
     .teams {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 10px;
+      text-align: center;
     }
-    .team {
-      background: #263748;
-      border-radius: 12px;
-      padding: 14px;
+
+    .team-name {
+      font-size: clamp(17px, 4vw, 25px);
+      font-weight: 800;
       overflow-wrap: anywhere;
     }
-    .team h2 { font-size: 16px; margin: 0; }
-    .team p { font-size: 24px; font-weight: bold; margin: 10px 0 0; }
-    #status { color: #f7c843; font-size: 14px; }
-    #recent { line-height: 1.9; overflow-wrap: anywhere; }
-    .footer { text-align: center; color: #9aa8b5; font-size: 12px; }
+
+    .versus {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .live-score {
+      text-align: center;
+      padding: 24px 8px 18px;
+    }
+
+    .innings-label {
+      color: var(--green);
+      font-size: 12px;
+      font-weight: bold;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+
+    .big-score {
+      margin: 12px 0 6px;
+      font-size: clamp(48px, 12vw, 76px);
+      font-weight: 900;
+      letter-spacing: -2px;
+      line-height: 1.1;
+    }
+
+    .overs {
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 22px;
+    }
+
+    .stat {
+      background: #111a12;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 14px 5px;
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 800;
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: 11px;
+      margin-top: 5px;
+    }
+
+    .target {
+      margin-top: 16px;
+      padding: 12px;
+      background: #28351e;
+      border-radius: 10px;
+      color: var(--green);
+      text-align: center;
+      font-weight: bold;
+    }
+
+    .innings-card {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .innings-card:last-child { border-bottom: 0; }
+
+    .innings-team {
+      font-weight: bold;
+      overflow-wrap: anywhere;
+    }
+
+    .innings-detail {
+      color: var(--muted);
+      font-size: 12px;
+      margin-top: 5px;
+    }
+
+    .innings-total {
+      text-align: right;
+      font-size: 21px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .message {
+      font-size: 16px;
+      line-height: 1.5;
+      text-align: center;
+      overflow-wrap: anywhere;
+    }
+
+    .events {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .event {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #111a12;
+      font-size: 14px;
+    }
+
+    .event-label { overflow-wrap: anywhere; }
+
+    .event-over {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .empty {
+      color: var(--muted);
+      font-size: 14px;
+      text-align: center;
+      padding: 12px 0;
+    }
+
+    .error {
+      color: #ffd0c8;
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    .hidden { display: none; }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 12px;
+      padding: 10px 16px 28px;
+    }
+
+    @media (max-width: 420px) {
+      .panel { padding: 16px; }
+      .stat-value { font-size: 19px; }
+    }
   </style>
 </head>
+
 <body>
-  <main class="container">
-    <header class="header">
-      <h1>🏏 TURF WARS</h1>
-      <div>LIVE MATCH SCORE</div>
-      <p id="status">Connecting to live scoreboard…</p>
-    </header>
+  <header>
+    <div class="brand">TURF WARS</div>
+    <div class="subtitle">LIVE CRICKET SCOREBOARD</div>
+  </header>
 
-    <section class="card">
-      <div class="label">CURRENT INNINGS</div>
-      <div class="score" id="score">0/0</div>
-      <div class="details">
-        <div>Overs: <strong id="overs">0.0</strong></div>
-        <div>Run rate: <strong id="rate">0.00</strong></div>
-        <div id="targetRow" hidden>Target: <strong id="target">—</strong></div>
-        <div id="result"></div>
-      </div>
-    </section>
+  <main>
+    <div class="status-line">
+      <span class="dot" id="statusDot"></span>
+      <span id="connectionStatus">Connecting to live score...</span>
+    </div>
 
-    <section class="card">
-      <div class="teams">
-        <div class="team">
-          <h2 id="team1">Team 1</h2>
-          <p id="score1">—</p>
+    <div id="errorPanel" class="panel hidden">
+      <div class="error" id="errorMessage"></div>
+    </div>
+
+    <div id="scoreboard" class="hidden">
+      <section class="panel">
+        <div class="section-label">Match</div>
+        <div class="teams">
+          <div class="team-name" id="team1Name">Team 1</div>
+          <div class="versus">VS</div>
+          <div class="team-name" id="team2Name">Team 2</div>
         </div>
-        <div class="team">
-          <h2 id="team2">Team 2</h2>
-          <p id="score2">—</p>
+
+        <div class="live-score">
+          <div class="innings-label" id="battingLabel">Match score</div>
+          <div class="big-score" id="bigScore">0/0</div>
+          <div class="overs" id="oversText">Overs 0.0</div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-value" id="runRate">0.00</div>
+              <div class="stat-label">RUN RATE</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" id="oversLimit">0</div>
+              <div class="stat-label">OVERS</div>
+            </div>
+            <div class="stat">
+              <div class="stat-value" id="inningsNumber">1/2</div>
+              <div class="stat-label">INNINGS</div>
+            </div>
+          </div>
+
+          <div class="target hidden" id="targetText"></div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <section class="card">
-      <h3>Recent deliveries</h3>
-      <div id="recent">Waiting for match data…</div>
-    </section>
+      <section class="panel">
+        <div class="section-label">Innings Summary</div>
+        <div id="inningsSummary"></div>
+      </section>
 
-    <p class="footer">Turf Wars • Live updates powered by Firebase</p>
+      <section class="panel">
+        <div class="section-label">Match Update</div>
+        <div class="message" id="matchMessage">Waiting for match updates...</div>
+      </section>
+
+      <section class="panel">
+        <div class="section-label">Recent Deliveries</div>
+        <div class="events" id="recentEvents"></div>
+      </section>
+    </div>
   </main>
 
+  <footer>Powered by Turf Wars · Live scores update automatically</footer>
+
   <script type="module">
-    import { initializeApp } from
-      "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
-    import { getDatabase, ref, onValue } from
-      "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
+    import { getDatabase, ref, onValue }
+      from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyC000ztA_x_KxGnKva4zqBZ7DCwOhQZQA",
+      apiKey: "AIzaSyC000ztA_x_KxGnKva4zqBZ7DCwOhQxZQA",
       authDomain: "turf-wars-b6ea0.firebaseapp.com",
       databaseURL: "https://turf-wars-b6ea0-default-rtdb.asia-southeast1.firebasedatabase.app",
       projectId: "turf-wars-b6ea0",
       storageBucket: "turf-wars-b6ea0.firebasestorage.app",
       messagingSenderId: "231555430819",
-      appId: "1:231555430819:web:e02b15ad623d62031a8216"
+      appId: "1:231555430819:web:e02b15ad623d62031a8216",
+      measurementId: "G-2SVQE2VBKT"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // The first version reads the current match.
-    // We will align this path with the scorer in the next step.
-    const matchRef = ref(db, "matches/current");
+    const params = new URLSearchParams(window.location.search);
+    const matchId = params.get("id");
 
-    const setText = (id, value) => {
-      document.getElementById(id).textContent = value ?? "—";
-    };
+    const $ = (id) => document.getElementById(id);
 
-    onValue(matchRef, (snapshot) => {
-      const data = snapshot.val();
+    function showError(message) {
+      $("scoreboard").classList.add("hidden");
+      $("errorPanel").classList.remove("hidden");
+      $("errorMessage").textContent = message;
+      $("connectionStatus").textContent = "Unable to load match";
+      $("statusDot").style.background = "#ff786b";
+    }
 
-      if (!data) {
-        setText("status", "Waiting for a match to be published.");
+    function setText(id, value) {
+      $(id).textContent = value;
+    }
+
+    function oversFromBalls(balls) {
+      const count = Number(balls) || 0;
+      return Math.floor(count / 6) + "." + (count % 6);
+    }
+
+    function scoreFromInnings(innings) {
+      if (!innings) return "0/0";
+      return `${innings.runs || 0}/${innings.wickets || 0}`;
+    }
+
+    function render(record) {
+      if (!record || !record.public || !record.match) {
+        showError("This match could not be found or is not available for public viewing. Ask the scorer for a fresh spectator link.");
         return;
       }
 
-      setText("status", "🟢 Live updates connected");
+      const match = record.match;
+      const names = match.names || ["Team 1", "Team 2"];
+      const innings = match.innings || [];
+      const currentIndex = Number(match.current) || 0;
+      const current = innings[currentIndex] || {
+        runs: 0, wickets: 0, legalBalls: 0, events: []
+      };
 
-      // These display fields will be mapped to your scorer's data structure.
-      const innings = data.currentInningsData || data.innings || {};
-      const runs = Number(innings.runs ?? data.runs ?? 0);
-      const wickets = Number(innings.wickets ?? data.wickets ?? 0);
-      const balls = Number(innings.balls ?? data.balls ?? 0);
-      const overs = Math.floor(balls / 6) + "." + (balls % 6);
+      $("errorPanel").classList.add("hidden");
+      $("scoreboard").classList.remove("hidden");
+      $("statusDot").style.background = "#b9f34a";
+      setText("connectionStatus", "LIVE · Connected");
 
-      setText("score", `${runs}/${wickets}`);
-      setText("overs", innings.overs ?? overs);
-      setText("rate", balls ? (runs / (balls / 6)).toFixed(2) : "0.00");
+      setText("team1Name", names[0] || "Team 1");
+      setText("team2Name", names[1] || "Team 2");
 
-      setText("team1", data.team1Name || data.team1 || "Team 1");
-      setText("team2", data.team2Name || data.team2 || "Team 2");
+      const battingName = names[currentIndex] || "Batting team";
+      setText(
+        "battingLabel",
+        match.finished ? "MATCH FINISHED" : `${battingName} · INNINGS ${currentIndex + 1}`
+      );
 
-      const first = data.firstInnings || {};
-      const second = data.secondInnings || {};
-      setText("score1", first.runs != null
-        ? `${first.runs}/${first.wickets ?? 0}` : "—");
-      setText("score2", second.runs != null
-        ? `${second.runs}/${second.wickets ?? 0}` : "—");
+      setText("bigScore", scoreFromInnings(current));
+      setText("oversText", `Overs ${oversFromBalls(current.legalBalls)}`);
 
-      if (data.target != null) {
-        document.getElementById("targetRow").hidden = false;
-        setText("target", data.target);
+      const balls = Number(current.legalBalls) || 0;
+      const runs = Number(current.runs) || 0;
+      const runRate = balls > 0 ? (runs / balls * 6).toFixed(2) : "0.00";
+
+      setText("runRate", runRate);
+      setText("oversLimit", String(match.maxOvers ?? "—"));
+      setText("inningsNumber", `${Math.min(currentIndex + 1, 2)}/2`);
+
+      const targetBox = $("targetText");
+      if (currentIndex === 1 && match.target != null && !match.finished) {
+        const needed = Math.max(0, Number(match.target) - runs);
+        targetBox.textContent = `Target: ${match.target} · ${needed} run${needed === 1 ? "" : "s"} needed`;
+        targetBox.classList.remove("hidden");
+      } else {
+        targetBox.classList.add("hidden");
       }
 
-      setText("result", data.result || "");
+      const summary = $("inningsSummary");
+      summary.replaceChildren();
 
-      const recent = data.recentDeliveries || data.recent || [];
-      setText("recent", Array.isArray(recent) && recent.length
-        ? recent.map(item => typeof item === "string"
-          ? item : JSON.stringify(item)).join(" • ")
-        : "No deliveries recorded yet.");
-    }, (error) => {
-      setText("status", "Unable to read live score. Check database rules.");
-      console.error(error);
-    });
+      innings.forEach((inn, index) => {
+        const row = document.createElement("div");
+        row.className = "innings-card";
+
+        const left = document.createElement("div");
+        const team = document.createElement("div");
+        team.className = "innings-team";
+        team.textContent = `${names[index] || `Team ${index + 1}`} · Innings ${index + 1}`;
+
+        const detail = document.createElement("div");
+        detail.className = "innings-detail";
+        detail.textContent = `Overs ${oversFromBalls(inn.legalBalls)}${inn.finished ? " · Completed" : ""}`;
+
+        left.append(team, detail);
+
+        const total = document.createElement("div");
+        total.className = "innings-total";
+        total.textContent = scoreFromInnings(inn);
+
+        row.append(left, total);
+        summary.append(row);
+      });
+
+      if (innings.length === 0) {
+        summary.textContent = "No innings data yet.";
+      }
+
+      setText(
+        "matchMessage",
+        record.message || (match.finished ? "Match finished." : "Match in progress.")
+      );
+
+      const eventsBox = $("recentEvents");
+      eventsBox.replaceChildren();
+
+      const events = Array.isArray(current.events) ? current.events.slice(0, 8) : [];
+
+      if (events.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = "No deliveries recorded yet.";
+        eventsBox.append(empty);
+      } else {
+        events.forEach((event) => {
+          const row = document.createElement("div");
+          row.className = "event";
+
+          const label = document.createElement("span");
+          label.className = "event-label";
+          label.textContent = event.label || "Delivery";
+
+          const over = document.createElement("span");
+          over.className = "event-over";
+          over.textContent = event.overBall ? `Over ${event.overBall}` : "";
+
+          row.append(label, over);
+          eventsBox.append(row);
+        });
+      }
+
+      if (match.finished) {
+        setText("connectionStatus", "MATCH FINISHED");
+      }
+    }
+
+    if (!matchId) {
+      showError("No match ID was provided. Open the spectator link generated by the scorer.");
+    } else {
+      onValue(
+        ref(db, "matches/" + matchId),
+        (snapshot) => {
+          if (!snapshot.exists()) {
+            showError("Match not found. Check that you are using the complete spectator link.");
+            return;
+          }
+          render(snapshot.val());
+        },
+        (error) => {
+          console.error("Live score error:", error);
+          showError("Could not read this match. Check the Firebase public-read rules and try again.");
+        }
+      );
+    }
   </script>
 </body>
 </html>
