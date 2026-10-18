@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#101a16">
+<title>TURF WARS — Turf Cricket Challenge</title>
+<style>
+:root{--bg:#0b110f;--panel:#121d18;--panel2:#17251e;--line:#2b3b32;--text:#f4f7f1;--muted:#a6b5aa;--lime:#c7ff54;--orange:#ff8a42;--red:#ff5f5f}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.5}a{color:inherit;text-decoration:none}button,input,select{font:inherit}button{cursor:pointer;border:0}.wrap{width:min(1120px,92%);margin:auto}.nav{display:flex;align-items:center;justify-content:space-between;padding:22px 0;border-bottom:1px solid #26332c}.brand{font-weight:950;letter-spacing:1.8px;font-size:1.1rem}.brand span{color:var(--lime)}.navlinks{display:flex;gap:24px;color:var(--muted);font-size:.9rem}.navlinks a:hover{color:var(--lime)}.nav-cta,.primary{background:var(--lime);color:#132015;font-weight:850;padding:12px 17px;border-radius:8px}.hero{padding:76px 0 58px;position:relative;overflow:hidden}.hero:after{content:"";position:absolute;width:450px;height:450px;right:-90px;top:30px;border-radius:50%;background:radial-gradient(circle,rgba(199,255,84,.15),transparent 68%);pointer-events:none}.eyebrow{font-size:.75rem;letter-spacing:2.5px;color:var(--lime);font-weight:850;text-transform:uppercase}.hero-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:center}.hero h1{font-size:clamp(3.3rem,8vw,6.4rem);line-height:.9;letter-spacing:-4px;margin:18px 0 24px;text-transform:uppercase}.hero h1 em{font-style:normal;color:var(--lime)}.hero p{color:var(--muted);max-width:560px;font-size:1.08rem}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:27px}.secondary{background:transparent;border:1px solid #405147;color:var(--text);font-weight:800;padding:12px 17px;border-radius:8px}.hero-art{min-height:340px;border:1px solid #34473a;border-radius:18px;background:linear-gradient(145deg,rgba(199,255,84,.12),transparent 50%),repeating-linear-gradient(0deg,transparent 0 43px,rgba(255,255,255,.04) 44px 45px),repeating-linear-gradient(90deg,transparent 0 43px,rgba(255,255,255,.04) 44px 45px),#142119;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}.pitch{width:64%;height:80%;border:2px solid rgba(199,255,84,.55);border-radius:48%;transform:rotate(-17deg);display:flex;align-items:center;justify-content:center}.pitch:before{content:"";position:absolute;width:38%;height:75%;border:2px solid rgba(199,255,84,.4)}.ball{width:98px;height:98px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#ffb19a,#df3c32 45%,#8c161d);box-shadow:0 22px 55px #0009;display:grid;place-items:center;font-size:2.8rem;z-index:1;transform:rotate(-18deg)}.art-label{position:absolute;bottom:20px;left:20px;font-size:.75rem;letter-spacing:2px;color:var(--lime);font-weight:900}.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 64px}.stat{padding:18px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}.stat strong{display:block;font-size:1.8rem;letter-spacing:-1px}.stat span{font-size:.8rem;color:var(--muted)}section{padding:36px 0 52px;scroll-margin-top:25px}.section-head{display:flex;justify-content:space-between;align-items:end;gap:20px;margin-bottom:24px}.section-head h2{font-size:clamp(1.8rem,4vw,2.7rem);letter-spacing:-1.5px;margin:6px 0}.section-head p{color:var(--muted);max-width:510px;margin:0}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card,.tracker,.calculator,.rules{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}.icon{font-size:1.7rem}.card h3{margin:12px 0 5px}.card p{color:var(--muted);font-size:.94rem;margin:0}.tag{display:inline-block;margin-top:15px;padding:5px 8px;border-radius:5px;background:#26372b;color:var(--lime);font-size:.72rem;font-weight:800}.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px}.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}.field label{font-size:.82rem;color:var(--muted)}input,select{background:#0c1410;color:var(--text);border:1px solid #35483c;border-radius:8px;padding:12px;width:100%;outline:none}input:focus,select:focus{border-color:var(--lime)}.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.btn{border-radius:8px;padding:11px 14px;font-weight:850}.btn-green{background:var(--lime);color:#132015}.btn-outline{background:transparent;border:1px solid #405147;color:var(--text)}.result{margin-top:16px;padding:16px;background:#1c2b20;border-radius:10px;border:1px solid #3a5038}.result strong{font-size:1.7rem;color:var(--lime);display:block}.muted{color:var(--muted)}.progress-top{display:flex;justify-content:space-between;align-items:center;gap:10px}.progressbar{height:10px;background:#28372e;border-radius:99px;overflow:hidden;margin:12px 0 18px}.progressbar div{height:100%;width:0;background:var(--lime);transition:width .25s}.checklist{display:grid;grid-template-columns:1fr 1fr;gap:10px}.check{display:flex;gap:10px;align-items:center;background:#0e1712;border:1px solid #2d4033;padding:12px;border-radius:9px;color:var(--muted);font-size:.9rem}.check input{width:auto;accent-color:var(--lime)}.tracker-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}.rules{display:grid;grid-template-columns:1fr 1fr;gap:12px}.rule{display:flex;gap:12px;align-items:flex-start;padding:12px;border-bottom:1px solid #2a3a30}.rule b{color:var(--lime)}.leaderboard{width:100%;border-collapse:collapse}.leaderboard th,.leaderboard td{text-align:left;padding:12px 8px;border-bottom:1px solid #2b3b32}.leaderboard th{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}.leaderboard td{font-size:.9rem}.empty{text-align:center;padding:20px;color:var(--muted)}.footer{border-top:1px solid var(--line);padding:28px 0 40px;color:var(--muted);font-size:.85rem}.footer strong{color:var(--text)}.notice{font-size:.8rem;color:var(--muted);margin-top:12px}.danger{color:var(--red)}@media(max-width:780px){.navlinks{display:none}.hero{padding-top:48px}.hero-grid,.two-col{grid-template-columns:1fr}.hero-art{min-height:260px}.stats{grid-template-columns:1fr 1fr;margin-bottom:35px}.cards{grid-template-columns:1fr}.section-head{align-items:start;flex-direction:column}.rules{grid-template-columns:1fr}.hero h1{letter-spacing:-2px}.checklist{grid-template-columns:1fr}}@media(max-width:420px){.form-grid{grid-template-columns:1fr}.stat strong{font-size:1.5rem}}
+</style>
+</head>
+<body>
+<header class="wrap nav">
+  <a class="brand" href="#top">TURF<span>WARS</span> 🏏</a>
+  <nav class="navlinks"><a href="#challenge">Challenge</a><a href="#calculator">Match planner</a><a href="#tracker">Tracker</a><a href="#rules">Rules</a></nav>
+  <a class="nav-cta" href="#tracker">START PLAYING ↗</a>
+</header>
+<main id="top">
+<section class="hero wrap">
+ <div class="hero-grid">
+  <div><div class="eyebrow">🏏 30 DAYS • CRICKET • BRAGGING RIGHTS</div>
+   <h1>Own<br>the <em>turf.</em></h1>
+   <p>Thirty days. More matches. Bigger hits. Better teamwork. Track your turf-cricket grind and see if you have what it takes to become the local legend.</p>
+   <div class="actions"><a class="primary" href="#tracker">START YOUR CHALLENGE →</a><a class="secondary" href="#challenge">SEE THE GAME PLAN</a></div>
+  </div>
+  <div class="hero-art" aria-label="Stylized cricket ball and turf pitch illustration"><div class="pitch"><div class="ball">🏏</div></div><div class="art-label">NO EXCUSES. JUST SIXES.</div></div>
+ </div>
+ <div class="stats">
+  <div class="stat"><strong>30 <span>days</span></strong><span>One cricket challenge</span></div>
+  <div class="stat"><strong id="matchesStat">0</strong><span>Matches logged</span></div>
+  <div class="stat"><strong id="runsStat">0</strong><span>Total runs</span></div>
+  <div class="stat"><strong id="winsStat">0</strong><span>Wins recorded</span></div>
+ </div>
+</section>
+<section id="challenge" class="wrap">
+ <div class="section-head"><div><div class="eyebrow">THE MISSION</div><h2>Make every over count.</h2></div><p>A fun, flexible challenge for your turf gang. Play consistently, improve one skill at a time, and keep the friendly rivalry alive.</p></div>
+ <div class="cards">
+  <article class="card"><div class="icon">🏏</div><h3>Show up and play</h3><p>Play or practise at least twice a week. Book a slot, gather your squad, and get on the pitch.</p><span class="tag">CONSISTENCY</span></article>
+  <article class="card"><div class="icon">🎯</div><h3>Beat your best</h3><p>Track runs, wickets and catches. Focus on improving your own game—not just winning every match.</p><span class="tag">PERSONAL BEST</span></article>
+  <article class="card"><div class="icon">🤝</div><h3>Back your team</h3><p>Bring good energy, rotate players fairly, respect the umpire and celebrate the whole team.</p><span class="tag">TEAM SPIRIT</span></article>
+ </div>
+</section>
+<section id="calculator" class="wrap">
+ <div class="section-head"><div><div class="eyebrow">PLAN YOUR GAME</div><h2>Match & score calculator.</h2></div><p>Estimate the runs needed to win, or plan a quick turf match before your booking starts.</p></div>
+ <div class="two-col">
+  <div class="calculator">
+   <h3>🏆 Chase calculator</h3><p class="muted">Enter the target and your current score.</p>
+   <div class="form-grid">
+    <div class="field"><label for="target">Target runs</label><input id="target" type="number" min="1" value="76"></div>
+    <div class="field"><label for="score">Current runs</label><input id="score" type="number" min="0" value="42"></div>
+    <div class="field"><label for="overs">Overs remaining</label><input id="overs" type="number" min="0.1" step="0.1" value="4"></div>
+    <div class="field"><label for="wickets">Wickets lost</label><select id="wickets"><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option></select></div>
+   </div>
+   <button class="btn btn-green" id="calcBtn">CALCULATE CHASE →</button>
+   <div class="result" id="chaseResult" aria-live="polite"><span class="muted">Runs needed</span><strong>34 runs</strong>Required rate: 8.50 runs/over</div>
+  </div>
+  <div class="calculator">
+   <h3>🗓️ Quick match planner</h3><p class="muted">Create a simple match plan for your group.</p>
+   <div class="field"><label for="teamA">Team A</label><input id="teamA" placeholder="e.g. Crazy Old Monk XI" value="Turf Titans"></div>
+   <div class="field"><label for="teamB">Team B</label><input id="teamB" placeholder="e.g. Weekend Warriors" value="Weekend Warriors"></div>
+   <div class="form-grid">
+    <div class="field"><label for="format">Format</label><select id="format"><option>6 overs</option><option>8 overs</option><option>10 overs</option><option>12 overs</option></select></div>
+    <div class="field"><label for="matchDate">Match date</label><input id="matchDate" type="date"></div>
+   </div>
+   <button class="btn btn-outline" id="planBtn">GENERATE MATCH PLAN</button>
+   <div class="result" id="planResult" aria-live="polite"><span class="muted">Your match card</span><strong>Turf Titans vs Weekend Warriors</strong>6 overs per side · Confirm your turf booking separately.</div>
+  </div>
+ </div>
+</section>
+<section id="tracker" class="wrap">
+ <div class="section-head"><div><div class="eyebrow">YOUR 30-DAY RUN</div><h2>Track your cricket grind.</h2></div><p>Your progress is saved in this browser on this device. No account needed for this demo.</p></div>
+ <div class="two-col">
+  <div class="tracker">
+   <div class="field"><label for="playerName">Player / squad name</label><input id="playerName" placeholder="e.g. Sachin's Turf Crew"></div>
+   <div class="progress-top"><strong>Challenge progress</strong><strong id="progressText">0%</strong></div>
+   <div class="progressbar"><div id="progressFill"></div></div>
+   <div class="checklist" id="dailyChecks">
+    <label class="check"><input type="checkbox" data-check="play"> Played a match or practised</label>
+    <label class="check"><input type="checkbox" data-check="skill"> Practised one skill</label>
+    <label class="check"><input type="checkbox" data-check="fitness"> Warmed up / worked on fitness</label>
+    <label class="check"><input type="checkbox" data-check="team"> Supported the team</label>
+   </div>
+   <div class="tracker-actions"><button class="btn btn-green" id="saveDay">SAVE TODAY'S PROGRESS</button><button class="btn btn-outline" id="resetChecks">RESET TODAY</button></div>
+   <p class="notice" id="saveNotice">Tick the actions you completed, then save your day.</p>
+  </div>
+  <div class="tracker">
+   <h3>📋 Log a match</h3>
+   <div class="field"><label for="matchName">Match / opponent</label><input id="matchName" placeholder="e.g. Sunday Night League"></div>
+   <div class="form-grid">
+    <div class="field"><label for="runs">Runs scored</label><input id="runs" type="number" min="0" value="0"></div>
+    <div class="field"><label for="wicketsTaken">Wickets taken</label><input id="wicketsTaken" type="number" min="0" value="0"></div>
+    <div class="field"><label for="catches">Catches</label><input id="catches" type="number" min="0" value="0"></div>
+    <div class="field"><label for="outcome">Result</label><select id="outcome"><option value="Win">Won</option><option value="Loss">Lost</option><option value="Draw">Draw / no result</option></select></div>
+   </div>
+   <button class="btn btn-green" id="addMatch">ADD MATCH TO SCOREBOARD</button>
+   <p class="notice">Use this as a personal tracker; match stats are not independently verified.</p>
+  </div>
+ </div>
+ <div class="tracker" style="margin-top:16px">
+  <div class="section-head"><div><div class="eyebrow">YOUR SCOREBOARD</div><h2 style="font-size:1.6rem">Recent matches</h2></div><button class="btn btn-outline" id="exportBtn">EXPORT CSV ↓</button></div>
+  <div style="overflow-x:auto"><table class="leaderboard"><thead><tr><th>Match</th><th>Runs</th><th>Wickets</th><th>Catches</th><th>Result</th></tr></thead><tbody id="matchRows"><tr><td colspan="5" class="empty">No matches logged yet. Add your first match above.</td></tr></tbody></table></div>
+ </div>
+</section>
+<section id="rules" class="wrap">
+ <div class="section-head"><div><div class="eyebrow">THE TURF CODE</div><h2>Rules of the challenge.</h2></div><p>Keep it competitive, keep it safe, and make sure everyone gets to enjoy the game.</p></div>
+ <div class="rules">
+  <div class="rule"><b>01</b><div><strong>Play fair.</strong><div class="muted">Respect the umpire, opponents and ground rules.</div></div></div>
+  <div class="rule"><b>02</b><div><strong>Warm up first.</strong><div class="muted">Prepare your body and use suitable footwear and equipment.</div></div></div>
+  <div class="rule"><b>03</b><div><strong>Log honestly.</strong><div class="muted">Record actual match stats and celebrate genuine progress.</div></div></div>
+  <div class="rule"><b>04</b><div><strong>Bring the squad.</strong><div class="muted">Encourage new players and share the time on the pitch.</div></div></div>
+  <div class="rule"><b>05</b><div><strong>Stay consistent.</strong><div class="muted">Miss a day? Reset, show up again, and keep going.</div></div></div>
+  <div class="rule"><b>06</b><div><strong>Play for the memories.</strong><div class="muted">Winning is great. Good cricket and great friends matter too.</div></div></div>
+ </div>
+</section>
+</main>
+<footer class="footer"><div class="wrap" style="display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap"><div><strong>TURF WARS 🏏</strong><br>Built for the love of turf cricket.</div><div>Unofficial community challenge · No booking or tournament affiliation implied.</div></div></footer>
+<script>
+const STORE='turfWarsChallengeV1';
+const defaultData={playerName:'',checks:{},matches:[]};
+let data={...defaultData};
+try{const saved=JSON.parse(localStorage.getItem(STORE)||'null');if(saved)data={...defaultData,...saved,checks:saved.checks||{},matches:saved.matches||[]}}catch(e){}
+const $=id=>document.getElementById(id);
+function persist(){try{localStorage.setItem(STORE,JSON.stringify(data))}catch(e){}}
+function safe(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function render(){
+ $('playerName').value=data.playerName||'';
+ const checks=[...document.querySelectorAll('[data-check]')];
+ checks.forEach(c=>c.checked=!!data.checks[c.dataset.check]);
+ const count=checks.filter(c=>c.checked).length, pct=Math.round(count/checks.length*100);
+ $('progressText').textContent=pct+'%';$('progressFill').style.width=pct+'%';
+ $('matchesStat').textContent=data.matches.length;
+ $('runsStat').textContent=data.matches.reduce((n,m)=>n+m.runs,0);
+ $('winsStat').textContent=data.matches.filter(m=>m.outcome==='Win').length;
+ $('matchRows').innerHTML=data.matches.length?data.matches.slice().reverse().map(m=>`<tr><td>${safe(m.name)}</td><td>${m.runs}</td><td>${m.wickets}</td><td>${m.catches}</td><td>${safe(m.outcome)}</td></tr>`).join(''):'<tr><td colspan="5" class="empty">No matches logged yet. Add your first match above.</td></tr>';
+}
+$('calcBtn').addEventListener('click',()=>{
+ const target=Math.max(0,Number($('target').value)||0),score=Math.max(0,Number($('score').value)||0),overs=Math.max(0,Number($('overs').value)||0),wk=Number($('wickets').value);
+ const needed=Math.max(0,target-score),rr=overs>0?(needed/overs):null;
+ $('chaseResult').innerHTML=`<span class="muted">${needed===0?'Target reached!':'Runs needed'}</span><strong>${needed} ${needed===1?'run':'runs'}</strong>${needed===0?'You are ahead of the target.':rr===null?'Overs remaining must be above zero.':`Required rate: ${rr.toFixed(2)} runs/over`}<div class="notice">${wk} wicket${wk===1?'':'s'} lost · Keep your cool and play smart.</div>`;
+});
+$('planBtn').addEventListener('click',()=>{
+ const a=$('teamA').value.trim()||'Team A',b=$('teamB').value.trim()||'Team B',format=$('format').value,date=$('matchDate').value;
+ $('planResult').innerHTML=`<span class="muted">YOUR MATCH CARD</span><strong>${safe(a)} vs ${safe(b)}</strong>${safe(format)} per side${date?' · '+safe(date):''}<div class="notice">Toss, player list and turf booking to be confirmed by your group.</div>`;
+});
+document.querySelectorAll('[data-check]').forEach(c=>c.addEventListener('change',()=>{data.checks[c.dataset.check]=c.checked;const count=[...document.querySelectorAll('[data-check]')].filter(x=>x.checked).length;$('progressText').textContent=Math.round(count/4*100)+'%';$('progressFill').style.width=(count/4*100)+'%'}));
+$('saveDay').addEventListener('click',()=>{data.playerName=$('playerName').value.trim();document.querySelectorAll('[data-check]').forEach(c=>data.checks[c.dataset.check]=c.checked);persist();render();$('saveNotice').textContent='Progress saved on this device. Keep showing up!'});
+$('resetChecks').addEventListener('click',()=>{document.querySelectorAll('[data-check]').forEach(c=>c.checked=false);data.checks={};persist();render();$('saveNotice').textContent="Today's checkboxes have been reset."});
+$('addMatch').addEventListener('click',()=>{
+ const name=$('matchName').value.trim();if(!name){$('matchName').focus();$('matchName').setCustomValidity('Enter a match name or opponent.');$('matchName').reportValidity();$('matchName').setCustomValidity('');return}
+ const num=id=>Math.max(0,Math.floor(Number($(id).value)||0));
+ data.matches.push({name,runs:num('runs'),wickets:num('wicketsTaken'),catches:num('catches'),outcome:$('outcome').value,date:new Date().toISOString().slice(0,10)});
+ persist();render();$('matchName').value='';$('runs').value='0';$('wicketsTaken').value='0';$('catches').value='0';
+});
+$('exportBtn').addEventListener('click',()=>{
+ if(!data.matches.length){alert('Log at least one match before exporting.');return}
+ const rows=[['Match','Runs','Wickets','Catches','Result','Date'],...data.matches.map(m=>[m.name,m.runs,m.wickets,m.catches,m.outcome,m.date])];
+ const csv=rows.map(r=>r.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');
+ const blob=new Blob([csv],{type:'text/csv;charset=utf-8;'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='turf-wars-matches.csv';a.click();URL.revokeObjectURL(url);
+});
+$('playerName').addEventListener('change',()=>{data.playerName=$('playerName').value.trim();persist()});
+render();
+</script>
+</body>
+</html>
