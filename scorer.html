@@ -289,7 +289,15 @@ footer { text-align:center; color:var(--muted); font-size:12px; padding:10px; }
       legal: !!options.legal
     });
 
-    if (inn.wickets >= 10) inn.finished = true;
+    if (inn.wickets >= 10) {
+      inn.finished = true;
+
+    if (match.current === 0) {
+    startChase();
+      } else {
+    finishMatch();
+      }
+    }
 
     if (match.current === 1 && inn.runs >= match.target) {
       match.finished = true;
