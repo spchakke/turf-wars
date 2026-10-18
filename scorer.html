@@ -298,8 +298,10 @@ function saveLocal() {
   }));
 }
 
+
 function save() {
   if (!match) return;
+
   saveLocal();
   render();
 
@@ -310,27 +312,44 @@ function save() {
 
   $("cloudStatus").textContent = "Syncing…";
 
-  const payload = {
+  const now = Date.now();
+
+  const matchPayload = {
     ownerUid: auth.currentUser.uid,
     public: true,
     match: clone(match),
     message
   };
 
-  // Queue writes so rapid scoring actions do not overwrite newer scores.
+  const historyPayload = {
+    ownerUid: auth.currentUser.uid,
+    public: true,
+    match: clone(match),
+    message,
+    updatedAt: now
+  };
+
+  // Queue writes so rapid scoring actions remain in order.
   cloudSaveQueue = cloudSaveQueue
-    .then(() => set(ref(db, "matches/" + cloudMatchId), payload))
+    .then(() =>
+      set(ref(db, "matches/" + cloudMatchId), matchPayload)
+    )
+    .then(() =>
+      set(ref(db, "history/" + cloudMatchId), historyPayload)
+    )
     .then(() => {
       $("cloudStatus").textContent = "Live synced";
-      $("syncMessage").textContent = "Score saved online.";
+      $("syncMessage").textContent =
+        "Score and match history saved online.";
     })
     .catch(error => {
       console.error("Firebase save failed:", error);
       $("cloudStatus").textContent = "Sync error";
       $("syncMessage").textContent =
-        "Score is saved in this browser, but cloud sync failed. Check Firebase settings and internet access.";
+        "Cloud save failed. Check Firebase permissions and internet access.";
     });
 }
+
 
 function updateSpectatorLink() {
   if (!cloudMatchId) return;
