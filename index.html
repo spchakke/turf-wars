@@ -186,6 +186,66 @@
       .btn { width: 100%; }
       .cta .actions { width: 100%; }
     }
+
+/* Turf Wars — modern sports theme */
+:root {
+  --tw-bg: #0b1220;
+  --tw-surface: #141f32;
+  --tw-surface-light: #1c2a40;
+  --tw-accent: #b7f34a;
+  --tw-text: #f4f7fb;
+  --tw-muted: #a6b3c7;
+  --tw-border: #2b3a50;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--tw-bg);
+  color: var(--tw-text);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button {
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+
+button:hover {
+  opacity: 0.92;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+a {
+  transition: color 0.18s ease;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--tw-accent);
+  outline-offset: 3px;
+}
+
+::selection {
+  background: var(--tw-accent);
+  color: var(--tw-bg);
+}
+  
   </style>
 </head>
 <body>
