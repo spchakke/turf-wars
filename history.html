@@ -423,7 +423,7 @@
       matchCount.textContent = "Loading...";
 
       unsubscribe = onValue(
-        ref(db, "matches"),
+        ref(db, "history"),
         (snapshot) => {
           if (!snapshot.exists()) {
             allMatches = [];
