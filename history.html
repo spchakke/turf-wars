@@ -243,9 +243,11 @@
       .actions a { padding: 11px 8px; }
     }
   </style>
+  <link rel="stylesheet" href="./theme.css">
 </head>
 
 <body>
+<header class="tw-header"><div class="tw-header-inner"><a class="tw-logo" href="./index.html" aria-label="Turf Wars home"><i aria-hidden="true"></i>TURF <b>WARS</b></a><nav class="tw-desktop-nav" aria-label="Main navigation"><a href="./index.html">Home</a><a href="./scorer.html">Scorer</a><a href="./live.html">Live Score</a><a href="./history.html" aria-current="page">History</a></nav></div></header>
   <header>
     <div class="brand">TURF WARS</div>
     <div class="subtitle">EVERY MATCH. EVERY SCORE.</div>
@@ -464,12 +466,7 @@
     loadMatches();
   </script>
 
-<nav aria-label="Main navigation" style="display:flex;flex-wrap:wrap;justify-content:center;gap:10px;padding:14px 12px;background:#1b261c;border-bottom:1px solid #354435;">
-  <a href="index.html" style="color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:8px;background:#344b35;font-weight:bold;">Home</a>
-  <a href="scorer.html" style="color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:8px;background:#344b35;font-weight:bold;">Scorer</a>
-  <a href="live.html" style="color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:8px;background:#344b35;font-weight:bold;">Live Score</a>
-  <a href="history.html" style="color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:8px;background:#344b35;font-weight:bold;">Match History</a>
-</nav>
+<nav class="tw-mobile-nav" aria-label="Mobile navigation"><a href="./index.html">Home</a><a href="./scorer.html">Scorer</a><a href="./live.html">Live Score</a><a href="./history.html" aria-current="page">History</a></nav>
 
 </body>
 </html>

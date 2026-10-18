@@ -511,16 +511,12 @@
       }
     }
   </style>
+  <link rel="stylesheet" href="./theme.css">
 </head>
 
 <body>
-  <header class="nav">
-    <a class="logo" href="./index.html" aria-label="Turf Wars home"
-       style="text-decoration:none;color:inherit">
-      🏏 TURF <span>WARS</span>
-    </a>
-    <a href="./scorer.html">Live Scoring ↗</a>
-  </header>
+<header class="tw-header"><div class="tw-header-inner"><a class="tw-logo" href="./index.html" aria-label="Turf Wars home"><i aria-hidden="true"></i>TURF <b>WARS</b></a><nav class="tw-desktop-nav" aria-label="Main navigation"><a href="./index.html" aria-current="page">Home</a><a href="./scorer.html">Scorer</a><a href="./live.html">Live Score</a><a href="./history.html">History</a></nav></div></header>
+
 
   <main>
     <!-- Hero -->
@@ -544,6 +540,11 @@
             Explore Turf Wars ↓
           </a>
         </div>
+      </div>
+      <div class="tw-hero-art" aria-hidden="true">
+        <div class="tw-pitch"></div><div class="tw-ball"></div>
+        <div class="tw-art-label tw-art-label-top">EVERY BALL COUNTS</div>
+        <div class="tw-art-label tw-art-label-bottom">OWN THE GAME</div>
       </div>
     </section>
 
@@ -604,8 +605,8 @@
           </p>
 
           <div class="actions">
-            <a class="btn btn-primary" href="./live.html">
-              Open Live Score →
+            <a class="btn btn-primary" href="./history.html">
+              Find a Match →
             </a>
           </div>
         </article>
@@ -647,12 +648,7 @@
   </main>
 
   <!-- Navigation -->
-  <nav class="site-nav" aria-label="Main navigation">
-    <a href="./index.html" aria-current="page">Home</a>
-    <a href="./scorer.html">Scorer</a>
-    <a href="./live.html">Live Score</a>
-    <a href="./history.html">Match History</a>
-  </nav>
+  <nav class="tw-mobile-nav" aria-label="Mobile navigation"><a href="./index.html" aria-current="page">Home</a><a href="./scorer.html">Scorer</a><a href="./live.html">Live Score</a><a href="./history.html">History</a></nav>
 
   <!-- Footer -->
   <footer class="site-footer">
