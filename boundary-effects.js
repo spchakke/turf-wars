@@ -1,6 +1,24 @@
 let activeEffect = null;
 let effectTimer = null;
 
+export function createDeliveryBadge(event) {
+  const badge = document.createElement('span');
+  let kind = 'run';
+  let text = String(event.runs ?? 0);
+  if (event.wicket) { kind = 'wicket'; text = 'W'; }
+  else if (!event.legalBall) {
+    kind = 'extra';
+    text = String(event.label).startsWith('NO-BALL') ? 'Nb' : 'Wd';
+  } else if (event.runs === 4) kind = 'four';
+  else if (event.runs === 6) kind = 'six';
+  else if (event.runs === 0) { kind = 'dot'; text = '•'; }
+  badge.className = 'tw-delivery-badge tw-delivery-' + kind;
+  badge.textContent = text;
+  // The adjacent delivery label supplies the accessible description.
+  badge.setAttribute('aria-hidden', 'true');
+  return badge;
+}
+
 export function clearBoundaryEffect() {
   if (effectTimer !== null) clearTimeout(effectTimer);
   activeEffect?.remove();

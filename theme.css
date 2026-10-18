@@ -1,6 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,800&family=Manrope:wght@400;500;600;700;800&display=swap');
 
 .hidden{display:none!important}
+.tw-delivery-label{flex:1;min-width:0;overflow-wrap:anywhere}
+.tw-delivery-badge{flex:0 0 36px;display:inline-grid;place-items:center;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:#ffffff14;color:var(--text);font:800 18px/1 'Barlow Condensed',Impact,sans-serif}
+.tw-delivery-four{background:linear-gradient(#8fe3ff,#59c6ff);color:#04202e;border-color:transparent;box-shadow:0 0 12px #59c6ff33}
+.tw-delivery-six{background:linear-gradient(#ffd37a,#ffb224);color:#331d00;border-color:transparent;box-shadow:0 0 14px #ffb22480}
+.tw-delivery-wicket{background:linear-gradient(#ff7482,#ff4d5f);color:#fff;border-color:transparent}
+.tw-delivery-extra{background:#c8f43a29;color:#c8f43a;border-color:#c8f43a66;font-size:15px}
+.tw-delivery-dot{color:var(--muted);font-size:26px}
 .tw-boundary{position:fixed;inset:0;z-index:70;pointer-events:none;display:grid;place-items:center}
 .tw-boundary b{font-family:'Barlow Condensed',Impact,'Arial Narrow',sans-serif;font-style:italic;font-weight:800;font-size:clamp(90px,26vw,220px);text-transform:uppercase;line-height:1;animation:tw-boundary-pop 1.05s cubic-bezier(.2,.9,.3,1.1) forwards;text-shadow:0 10px 60px #0009}
 .tw-boundary-4 b{color:#59c6ff;filter:drop-shadow(0 0 30px #59c6ffb3)}

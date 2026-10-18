@@ -209,7 +209,7 @@
 
 <script type="module">
 import { app, db } from "./firebase-client.js";
-import { flashBoundary, clearBoundaryEffect } from "./boundary-effects.js";
+import { flashBoundary, clearBoundaryEffect, createDeliveryBadge } from "./boundary-effects.js";
 import { ref, update, push, onValue, serverTimestamp } from
   "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 import { getAuth, signInAnonymously } from
@@ -667,6 +667,7 @@ function render() {
       row.className = "event";
 
       const left = document.createElement("span");
+      left.className = "tw-delivery-label";
       left.textContent = event.label;
 
       const right = document.createElement("span");
@@ -675,7 +676,7 @@ function render() {
         ? "Wicket"
         : (event.legalBall ? "Legal ball" : "Extra"));
 
-      row.append(left, right);
+      row.append(createDeliveryBadge(event), left, right);
       $("recentEvents").appendChild(row);
     });
   }

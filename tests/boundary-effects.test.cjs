@@ -41,6 +41,23 @@ test('four/six flash uses the right label, replaces the last effect and cleans u
   assert.equal(children.length, 0);
 });
 
+test('recent-delivery badges distinguish boundaries, wickets, extras and dot balls', () => {
+  const { run } = harness();
+  for (const [event, kind, text] of [
+    [{runs:4,legalBall:true}, 'four', '4'],
+    [{runs:6,legalBall:true}, 'six', '6'],
+    [{runs:0,legalBall:true,wicket:true}, 'wicket', 'W'],
+    [{runs:1,legalBall:false,label:'WIDE +1'}, 'extra', 'Wd'],
+    [{runs:1,legalBall:false,label:'NO-BALL +1'}, 'extra', 'Nb'],
+    [{runs:0,legalBall:true}, 'dot', '•'],
+    [{runs:2,legalBall:true}, 'run', '2'],
+  ]) {
+    const badge = run(`createDeliveryBadge(${JSON.stringify(event)})`);
+    assert.equal(badge.className, 'tw-delivery-badge tw-delivery-' + kind);
+    assert.equal(badge.textContent, text);
+  }
+});
+
 test('spectator celebrates new consecutive boundaries, not initial load, repeated snapshots, or Undo', () => {
   const { run } = harness();
   run(`const celebrations=[]; const observe=createBoundaryObserver(runs=>celebrations.push(runs));

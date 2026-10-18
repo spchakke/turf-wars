@@ -35,6 +35,7 @@ function harness() {
     },
     flashBoundary: runs => { if (runs === 4 || runs === 6) flashes.push(runs); },
     clearBoundaryEffect() {},
+    createDeliveryBadge: () => element(),
     serverTimestamp: () => Date.now(),
     console,
   });
@@ -131,7 +132,7 @@ test('spectator result banner displays the winner and clears on a reopened match
         toggle(c, enabled) { enabled ? classes.add(c) : classes.delete(c); },
         contains: c => classes.has(c) } };
   }
-  const context = vm.createContext({ createBoundaryObserver: () => () => {}, document: {
+  const context = vm.createContext({ createBoundaryObserver: () => () => {}, createDeliveryBadge: () => element(), document: {
     getElementById(id) { if (!elements.has(id)) elements.set(id, element()); return elements.get(id); },
     createElement: element,
   } });

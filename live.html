@@ -342,7 +342,7 @@
 
   <script type="module">
     import { db } from "./firebase-client.js";
-    import { createBoundaryObserver } from "./boundary-effects.js";
+    import { createBoundaryObserver, createDeliveryBadge } from "./boundary-effects.js";
     import { ref, onValue }
       from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 
@@ -484,14 +484,14 @@
           row.className = "event";
 
           const label = document.createElement("span");
-          label.className = "event-label";
+          label.className = "event-label tw-delivery-label";
           label.textContent = event.label || "Delivery";
 
           const over = document.createElement("span");
           over.className = "event-over";
           over.textContent = event.overBall ? `Over ${event.overBall}` : "";
 
-          row.append(label, over);
+          row.append(createDeliveryBadge(event), label, over);
           eventsBox.append(row);
         });
       }
