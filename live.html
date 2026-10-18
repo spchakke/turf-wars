@@ -290,6 +290,7 @@
           <div class="innings-label" id="battingLabel">Match score</div>
           <div class="big-score" id="bigScore">0/0</div>
           <div class="overs" id="oversText">Overs 0.0</div>
+          <p id="resultBanner" class="tw-result hidden" role="status" aria-live="polite" aria-atomic="true"></p>
 
           <div class="stats">
             <div class="stat">
@@ -405,6 +406,8 @@
       );
 
       setText("bigScore", scoreFromInnings(current));
+      setText("resultBanner", match.finished ? (record.message || "Match finished.") : "");
+      $("resultBanner").classList.toggle("hidden", !match.finished);
       setText("oversText", `Overs ${oversFromBalls(current.legalBalls)}`);
 
       const balls = Number(current.legalBalls) || 0;

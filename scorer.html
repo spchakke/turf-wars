@@ -127,6 +127,7 @@
         Overs: <strong id="oversDisplay">0.0</strong>
         <span id="targetDisplay"></span>
       </div>
+      <p id="resultBanner" class="tw-result hidden" role="status" aria-live="polite" aria-atomic="true"></p>
 
       <div class="grid3" style="margin-top:18px">
         <div class="panel" style="margin:0;padding:12px">
@@ -564,6 +565,8 @@ function render() {
     match.target !== null ? " · Target: " + match.target : "";
 
   $("matchStatus").textContent = message;
+  $("resultBanner").textContent = match.finished ? message : "";
+  $("resultBanner").classList.toggle("hidden", !match.finished);
   $("undoBtn").disabled = undoStack.length === 0;
 
   const disabled = match.finished || inn.finished;
