@@ -228,6 +228,7 @@ const STORAGE_KEY = "turfWarsScorerV3";
 let match = null;
 let cloudMatchId = null;
 let cloudSaveQueue = Promise.resolve();
+let latestCloudSave = 0;
 let undoStack = [];
 let message = "Match in progress";
 let isStarting = false;
@@ -282,6 +283,8 @@ function save() {
   $("cloudStatus").textContent = "Syncing…";
 
   const now = Date.now();
+  const destinationId = cloudMatchId;
+  const saveVersion = ++latestCloudSave;
 
   const matchPayload = {
     ownerUid: auth.currentUser.uid,
@@ -301,18 +304,20 @@ function save() {
   // Queue writes so rapid scoring actions remain in order.
   cloudSaveQueue = cloudSaveQueue
     .then(() =>
-      set(ref(db, "matches/" + cloudMatchId), matchPayload)
+      set(ref(db, "matches/" + destinationId), matchPayload)
     )
     .then(() =>
-      set(ref(db, "history/" + cloudMatchId), historyPayload)
+      set(ref(db, "history/" + destinationId), historyPayload)
     )
     .then(() => {
+      if (cloudMatchId !== destinationId || saveVersion !== latestCloudSave) return;
       $("cloudStatus").textContent = "Live synced";
       $("syncMessage").textContent =
         "Score and match history saved online.";
     })
     .catch(error => {
       console.error("Firebase save failed:", error);
+      if (cloudMatchId !== destinationId || saveVersion !== latestCloudSave) return;
       $("cloudStatus").textContent = "Sync error";
       $("syncMessage").textContent =
         "Cloud save failed. Check Firebase permissions and internet access.";
@@ -424,12 +429,12 @@ function checkInningsEnd() {
 
   if (match.current === 1 && match.target !== null &&
       inn.runs >= match.target) {
-    finishMatch();
+    finishMatch(false, false);
     return;
   }
 
   if (inn.wickets >= 10 || inn.legalBalls >= totalOvers()) {
-    endInnings(false);
+    endInnings(false, false);
   }
 }
 
@@ -476,32 +481,33 @@ function addWicket() {
 
 function canScore() {
   if (!match || match.finished || currentInnings().finished) return false;
+  const inn = currentInnings();
+  if (inn.wickets >= 10 || inn.legalBalls >= totalOvers()) return false;
+  if (match.current === 1 && match.target !== null && inn.runs >= match.target) return false;
   return true;
 }
 
-function endInnings(showMessage = true) {
+function endInnings(addUndo = true, persist = true) {
   if (!match || match.finished) return;
 
   const inn = currentInnings();
   if (inn.finished) return;
 
-  rememberUndo();
+  if (addUndo) rememberUndo();
   inn.finished = true;
 
   if (match.current === 0) {
     match.target = inn.runs + 1;
     match.current = 1;
-    message = showMessage
-      ? "First innings complete. Target: " + match.target
-      : "First innings complete. Target: " + match.target;
+    message = "First innings complete. Target: " + match.target;
   } else {
-    finishMatch(false);
+    finishMatch(false, false);
   }
 
-  save();
+  if (persist) save();
 }
 
-function finishMatch(addUndo = true) {
+function finishMatch(addUndo = true, persist = true) {
   if (!match || match.finished) return;
   if (addUndo) rememberUndo();
 
@@ -520,7 +526,7 @@ function finishMatch(addUndo = true) {
     message = "Match tied!";
   }
 
-  save();
+  if (persist) save();
 }
 
 function undo() {
