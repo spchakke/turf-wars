@@ -1,7 +1,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,600;0,700;0,800;1,800&family=Manrope:wght@400;500;600;700;800&display=swap');
 
+.hidden{display:none!important}
+.tw-innings-summary{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;color:var(--muted);font-size:12px;font-weight:700}.tw-innings-summary>div{padding:6px 10px;border:1px solid var(--line);border-radius:8px;overflow-wrap:anywhere}
 /* Shared presentation only; scoring and persistence remain in their pages. */
 .tw-result{margin:18px 0 0;padding:16px 18px;border:1px solid #c8f43a66;border-radius:14px;background:linear-gradient(135deg,#c8f43a22,#c8f43a0a);color:#e2ff7a;font-size:clamp(18px,3vw,24px);font-weight:800;line-height:1.4;overflow-wrap:anywhere;text-align:center}
+.tw-history-tools{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:14px;margin:0 0 24px}
+.tw-history-tools label,#joinForm label{display:block;font-size:12px;font-weight:800;letter-spacing:.05em;color:var(--muted);margin-bottom:7px}
+.tw-history-tools input,.tw-history-tools select,#joinInput{width:100%;min-height:48px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.25);color:var(--text);font:inherit}
+#joinForm{display:grid;gap:10px}#joinForm button,#loadMoreButton,#retrySyncBtn,#exportBtn{min-height:44px;padding:10px 16px;border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);font:700 14px 'Manrope',sans-serif;cursor:pointer}
+#joinForm .primary{background:var(--green);color:#10200a}#loadMoreButton{display:block;margin:24px auto}#storageWarning:not(:empty){padding:12px;border:1px solid #ffb22466;border-radius:10px;color:#ffdc8f}
+.team{overflow-wrap:anywhere}main>section>h1{margin:0 0 16px}
+@media(max-width:420px){.tw-history-tools{grid-template-columns:1fr}}
 :root{--bg:#05120d;--panel:#102a1e;--panel-light:#173a29;--green:#c8f43a;--white:#eef8f1;--text:#eef8f1;--muted:#9eb7a8;--line:rgba(255,255,255,.13);--border:rgba(255,255,255,.13);color-scheme:dark}
 html{scroll-padding-top:90px}
 body{margin:0;padding:0;background:radial-gradient(900px 500px at 85% 0%,rgba(200,244,58,.13),transparent 65%),radial-gradient(700px 500px at -10% 30%,rgba(89,198,255,.08),transparent 65%),repeating-linear-gradient(90deg,rgba(255,255,255,.018) 0 64px,transparent 64px 128px),var(--bg);background-attachment:fixed;color:var(--text);font:500 15px/1.6 'Manrope',system-ui,sans-serif;-webkit-font-smoothing:antialiased}

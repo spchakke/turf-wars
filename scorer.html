@@ -87,7 +87,7 @@
     <label for="overs">Overs per innings</label>
     <select id="overs">
       <option value="2">2 overs</option>
-      <option value="4" selected>4 overs</option>
+      <option value="4">4 overs</option>
       <option value="5" selected>5 overs</option>
       <option value="6">6 overs</option>
       <option value="7">7 overs</option>
@@ -128,6 +128,7 @@
         <span id="targetDisplay"></span>
       </div>
       <p id="resultBanner" class="tw-result hidden" role="status" aria-live="polite" aria-atomic="true"></p>
+      <button id="superOverBtn" class="primary hidden" style="width:100%;margin-top:12px">Start Super Over</button>
 
       <div class="grid3" style="margin-top:18px">
         <div class="panel" style="margin:0;padding:12px">
@@ -136,13 +137,14 @@
         </div>
         <div class="panel" style="margin:0;padding:12px">
           <div class="muted">Overs left</div>
-          <strong id="oversLeft">5</strong>
+          <strong id="oversLeft">5.0</strong>
         </div>
         <div class="panel" style="margin:0;padding:12px">
           <div class="muted">Innings total</div>
           <strong id="inningsTotal">0</strong>
         </div>
       </div>
+      <div id="scorerSummary" class="tw-innings-summary" aria-label="Innings scores"></div>
     </div>
 
     <div class="panel">
@@ -198,31 +200,20 @@
       <h2>Match status</h2>
       <p id="matchStatus" class="status">Match in progress</p>
       <p id="syncMessage" class="note" role="status"></p>
+      <p id="storageWarning" class="note" role="alert"></p>
+      <button id="retrySyncBtn">Retry sync</button>
+      <button id="exportBtn">Download match backup</button>
     </div>
   </section>
 </main>
 
 <script type="module">
-import { initializeApp } from
-  "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
-import { getDatabase, ref, set, push } from
+import { app, db } from "./firebase-client.js";
+import { ref, update, push, onValue, serverTimestamp } from
   "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
 import { getAuth, signInAnonymously } from
   "https://www.gstatic.com/firebasejs/13.0.0/firebase-auth.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyC000ztA_x_KxGnKva4zqBZ7DCwOhQxZQA",
-  authDomain: "turf-wars-b6ea0.firebaseapp.com",
-  databaseURL: "https://turf-wars-b6ea0-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "turf-wars-b6ea0",
-  storageBucket: "turf-wars-b6ea0.firebasestorage.app",
-  messagingSenderId: "231555430819",
-  appId: "1:231555430819:web:e02b15ad623d62031a8216",
-  measurementId: "G-2SVQE2VBKT"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
 const auth = getAuth(app);
 
 const $ = id => document.getElementById(id);
@@ -235,6 +226,11 @@ let latestCloudSave = 0;
 let undoStack = [];
 let message = "Match in progress";
 let isStarting = false;
+let ownerUid = null;
+let otherTabChanged = false;
+let cloudConnected = false;
+let localBackupOk = true;
+let undoMessages = [];
 
 function newInnings() {
   return {
@@ -259,68 +255,99 @@ function oversText(legalBalls) {
 }
 
 function totalOvers() {
-  return match.maxOvers * 6;
+  return match.current >= 2 ? 6 : match.maxOvers * 6;
+}
+
+function wicketLimit() {
+  return match.current >= 2 ? 2 : 10;
+}
+
+function teamIndex(index = match.current) {
+  return match.innings[index].teamIndex ?? index % 2;
+}
+
+function isTied() {
+  const base = Math.floor(match.current / 2) * 2;
+  return match.finished && match.current % 2 === 1 &&
+    match.innings[base].runs === match.innings[base + 1].runs;
+}
+
+function startSuperOver() {
+  if (!match || otherTabChanged || !isTied()) return;
+  rememberUndo();
+  // The team that chased in the previous round bats first in the next round.
+  const firstTeam = teamIndex();
+  const round = Math.floor(match.current / 2) + 1;
+  match.innings.push(
+    { ...newInnings(), teamIndex: firstTeam, superOver: round },
+    { ...newInnings(), teamIndex: 1 - firstTeam, superOver: round }
+  );
+  match.current = match.innings.length - 2;
+  match.target = null;
+  match.finished = false;
+  message = "Super Over " + round + " · " + match.names[firstTeam] + " bat first. One over, two wickets per team.";
+  save();
 }
 
 function saveLocal() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({
-    match,
-    cloudMatchId,
-    undoStack,
-    message
-  }));
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      match, cloudMatchId, ownerUid, undoStack, undoMessages, message
+    }));
+    localBackupOk = true;
+    $("storageWarning").textContent = "";
+  } catch (error) {
+    localBackupOk = false;
+    $("storageWarning").textContent = "Browser backup failed. Download a match backup before closing this page.";
+  }
 }
 
 
 function save() {
-  if (!match) return;
+  if (!match || otherTabChanged) return;
 
   saveLocal();
   render();
 
   if (!cloudMatchId || !auth.currentUser) {
-    $("cloudStatus").textContent = "Local only";
+    $("cloudStatus").textContent = localBackupOk ? "Local only" : "Not saved";
     return;
   }
 
-  $("cloudStatus").textContent = "Syncing…";
+  if (ownerUid && ownerUid !== auth.currentUser.uid) {
+    $("cloudStatus").textContent = "Account mismatch";
+    $("syncMessage").textContent = "This match belongs to another browser identity. Download a backup; cloud updates are blocked.";
+    return;
+  }
+  $("cloudStatus").textContent = cloudConnected ? "Syncing…" : "Waiting for connection…";
 
-  const now = Date.now();
+  const now = serverTimestamp();
   const destinationId = cloudMatchId;
   const saveVersion = ++latestCloudSave;
 
-  const matchPayload = {
-    ownerUid: auth.currentUser.uid,
-    public: true,
-    match: clone(match),
-    message
-  };
-
-  const historyPayload = {
-    ownerUid: auth.currentUser.uid,
+  const payload = {
+    ownerUid: ownerUid || auth.currentUser.uid,
     public: true,
     match: clone(match),
     message,
     updatedAt: now
   };
 
-  // Queue writes so rapid scoring actions remain in order.
+  // Both views are committed together; every queued save keeps its destination.
   cloudSaveQueue = cloudSaveQueue
-    .then(() =>
-      set(ref(db, "matches/" + destinationId), matchPayload)
-    )
-    .then(() =>
-      set(ref(db, "history/" + destinationId), historyPayload)
-    )
+    .then(() => update(ref(db), {
+      ["matches/" + destinationId]: payload,
+      ["history/" + destinationId]: payload
+    }))
     .then(() => {
-      if (cloudMatchId !== destinationId || saveVersion !== latestCloudSave) return;
+      if (otherTabChanged || cloudMatchId !== destinationId || saveVersion !== latestCloudSave) return;
       $("cloudStatus").textContent = "Live synced";
       $("syncMessage").textContent =
         "Score and match history saved online.";
     })
     .catch(error => {
       console.error("Firebase save failed:", error);
-      if (cloudMatchId !== destinationId || saveVersion !== latestCloudSave) return;
+      if (otherTabChanged || cloudMatchId !== destinationId || saveVersion !== latestCloudSave) return;
       $("cloudStatus").textContent = "Sync error";
       $("syncMessage").textContent =
         "Cloud save failed. Check Firebase permissions and internet access.";
@@ -336,17 +363,40 @@ function updateSpectatorLink() {
   $("spectatorLink").textContent = url.href;
 }
 
+function validMatch(value) {
+  return value && Array.isArray(value.names) && value.names.length === 2 &&
+    value.names.every(name => typeof name === "string" && name.length <= 40) &&
+    Number.isInteger(value.maxOvers) && value.maxOvers > 0 && value.maxOvers <= 20 &&
+    Array.isArray(value.innings) && value.innings.length >= 2 && value.innings.length % 2 === 0 &&
+    Number.isInteger(value.current) && value.current >= 0 && value.current < value.innings.length &&
+    typeof value.finished === "boolean" &&
+    (value.target === null || (Number.isInteger(value.target) && value.target > 0)) &&
+    value.innings.every(inn => inn &&
+      [inn.runs, inn.wickets, inn.legalBalls].every(n => Number.isInteger(n) && n >= 0) &&
+      typeof inn.finished === "boolean" && Array.isArray(inn.events) &&
+      (inn.teamIndex === undefined || inn.teamIndex === 0 || inn.teamIndex === 1));
+}
+
 function restoreLocal() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-    if (!saved || !saved.match) return false;
+    if (!saved || !validMatch(saved.match)) {
+      if (saved) $("setupStatus").textContent = "Saved match data is invalid and has not been removed. Starting a new match will replace it.";
+      return false;
+    }
     match = saved.match;
-    cloudMatchId = saved.cloudMatchId || null;
-    undoStack = saved.undoStack || [];
-    message = saved.message || "Match in progress";
+    cloudMatchId = typeof saved.cloudMatchId === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(saved.cloudMatchId) ? saved.cloudMatchId : null;
+    ownerUid = saved.ownerUid || null;
+    const snapshots = Array.isArray(saved.undoStack) ? saved.undoStack : [];
+    const pairs = snapshots.map((snapshot, index) => ({snapshot, message: saved.undoMessages?.[index]}))
+      .filter(pair => validMatch(pair.snapshot)).slice(-100);
+    undoStack = pairs.map(pair => pair.snapshot);
+    undoMessages = pairs.map(pair => typeof pair.message === "string" ? pair.message : null);
+    message = match.finished ? resultMessage() : typeof saved.message === "string" ? saved.message : "Match in progress";
     return true;
   } catch (error) {
     console.warn("Could not restore saved match:", error);
+    $("setupStatus").textContent = "Browser storage could not be read. Your saved data has not been removed.";
     return false;
   }
 }
@@ -373,6 +423,8 @@ async function startMatch() {
     const team1 = $("team1").value.trim() || "Team A";
     const team2 = $("team2").value.trim() || "Team B";
     const maxOvers = Number($("overs").value);
+    if (team1.toLowerCase() === team2.toLowerCase()) throw new Error("Enter different team names.");
+    if (!Number.isInteger(maxOvers) || maxOvers < 1 || maxOvers > 20) throw new Error("Choose a valid overs limit.");
 
     // Firebase anonymous sign-in must be enabled in Firebase Authentication.
     const credential = await signInAnonymously(auth);
@@ -386,7 +438,10 @@ async function startMatch() {
       innings: [newInnings(), newInnings()]
     };
 
+    ownerUid = credential.user.uid;
+    otherTabChanged = false;
     undoStack = [];
+    undoMessages = [];
     message = "Match in progress";
 
     const matchRef = push(ref(db, "matches"));
@@ -402,7 +457,7 @@ async function startMatch() {
   } catch (error) {
     console.error("Could not start cloud match:", error);
     $("setupStatus").textContent =
-      "Could not connect to Firebase. Check your internet connection and confirm Anonymous sign-in is enabled. Details: " +
+      "Could not start the match: " +
       error.message;
   } finally {
     isStarting = false;
@@ -412,7 +467,8 @@ async function startMatch() {
 
 function rememberUndo() {
   undoStack.push(clone(match));
-  if (undoStack.length > 100) undoStack.shift();
+  undoMessages.push(message);
+  if (undoStack.length > 100) { undoStack.shift(); undoMessages.shift(); }
 }
 
 function addEvent(label, runs, legalBall, wicket = false) {
@@ -424,25 +480,25 @@ function addEvent(label, runs, legalBall, wicket = false) {
     wicket,
     overBall: oversText(inn.legalBalls)
   });
-  if (inn.events.length > 30) inn.events.pop();
+  // Retain every delivery for the match backup and online record.
 }
 
 function checkInningsEnd() {
   const inn = currentInnings();
 
-  if (match.current === 1 && match.target !== null &&
+  if (match.current % 2 === 1 && match.target !== null &&
       inn.runs >= match.target) {
     finishMatch(false, false);
     return;
   }
 
-  if (inn.wickets >= 10 || inn.legalBalls >= totalOvers()) {
+  if (inn.wickets >= wicketLimit() || inn.legalBalls >= totalOvers()) {
     endInnings(false, false);
   }
 }
 
 function scoreRuns(runs) {
-  if (!canScore()) return;
+  if (!Number.isInteger(runs) || runs < 0 || runs > 6 || !canScore()) return;
   rememberUndo();
 
   const inn = currentInnings();
@@ -456,7 +512,7 @@ function scoreRuns(runs) {
 }
 
 function addExtra(type) {
-  if (!canScore()) return;
+  if (!["WIDE", "NO-BALL"].includes(type) || !canScore()) return;
   rememberUndo();
 
   const inn = currentInnings();
@@ -483,15 +539,15 @@ function addWicket() {
 }
 
 function canScore() {
-  if (!match || match.finished || currentInnings().finished) return false;
+  if (!match || otherTabChanged || match.finished || currentInnings().finished) return false;
   const inn = currentInnings();
-  if (inn.wickets >= 10 || inn.legalBalls >= totalOvers()) return false;
-  if (match.current === 1 && match.target !== null && inn.runs >= match.target) return false;
+  if (inn.wickets >= wicketLimit() || inn.legalBalls >= totalOvers()) return false;
+  if (match.current % 2 === 1 && match.target !== null && inn.runs >= match.target) return false;
   return true;
 }
 
 function endInnings(addUndo = true, persist = true) {
-  if (!match || match.finished) return;
+  if (!match || otherTabChanged || match.finished) return;
 
   const inn = currentInnings();
   if (inn.finished) return;
@@ -499,10 +555,10 @@ function endInnings(addUndo = true, persist = true) {
   if (addUndo) rememberUndo();
   inn.finished = true;
 
-  if (match.current === 0) {
+  if (match.current % 2 === 0) {
     match.target = inn.runs + 1;
-    match.current = 1;
-    message = "First innings complete. Target: " + match.target;
+    match.current += 1;
+    message = (match.current >= 2 ? "Super Over first innings complete. Target: " : "First innings complete. Target: ") + match.target;
   } else {
     finishMatch(false, false);
   }
@@ -511,35 +567,42 @@ function endInnings(addUndo = true, persist = true) {
 }
 
 function finishMatch(addUndo = true, persist = true) {
-  if (!match || match.finished) return;
+  if (!match || otherTabChanged || match.finished) return;
+  if (match.current % 2 === 0) return;
   if (addUndo) rememberUndo();
-
   match.finished = true;
   match.innings.forEach(inn => { inn.finished = true; });
 
-  const a = match.innings[0].runs;
-  const b = match.innings[1].runs;
-
-  if (b > a) {
-    const wicketsRemaining = 10 - match.innings[1].wickets;
-    message = match.names[1] + " win by " + wicketsRemaining + " wicket(s)!";
-  } else if (a > b) {
-    message = match.names[0] + " win by " + (a - b) + " run(s)!";
-  } else {
-    message = "Match tied!";
-  }
+  message = resultMessage();
 
   if (persist) save();
 }
 
+function resultMessage() {
+  const base = Math.floor(match.current / 2) * 2;
+  const first = match.innings[base];
+  const second = match.innings[base + 1];
+  const suffix = base >= 2 ? " (Super Over " + base / 2 + ")" : "";
+  if (second.runs > first.runs) {
+    return match.names[teamIndex(base + 1)] + " win by " +
+      (wicketLimit() - second.wickets) + " wicket(s)!" + suffix;
+  }
+  if (first.runs > second.runs) {
+    return match.names[teamIndex(base)] + " win by " +
+      (first.runs - second.runs) + " run(s)!" + suffix;
+  }
+  return "Match tied!" + suffix;
+}
+
 function undo() {
+  if (otherTabChanged) return;
   if (!undoStack.length) {
     $("syncMessage").textContent = "There is no action to undo.";
     return;
   }
 
   match = undoStack.pop();
-  message = match.finished ? message : "Match in progress";
+  message = undoMessages.pop() || (match.finished ? resultMessage() : "Match in progress");
   save();
 }
 
@@ -550,26 +613,38 @@ function render() {
   const oversDone = inn.legalBalls / 6;
   const runRate = oversDone > 0 ? (inn.runs / oversDone) : 0;
 
-  $("battingTeam").textContent = match.names[match.current];
+  $("battingTeam").textContent = match.names[teamIndex()];
   $("inningsLabel").textContent =
-    match.current === 0 ? "1st innings" : "2nd innings";
+    (match.current >= 2 ? "Super Over " + Math.floor(match.current / 2) + " · " : "") +
+    (match.current % 2 === 0 ? "1st innings" : "2nd innings");
   $("runs").textContent = inn.runs;
   $("wickets").textContent = inn.wickets;
   $("oversDisplay").textContent = oversText(inn.legalBalls);
   $("runRate").textContent = runRate.toFixed(2);
   $("oversLeft").textContent =
-    Math.max(0, match.maxOvers - oversDone).toFixed(1);
+    oversText(Math.max(0, totalOvers() - inn.legalBalls));
   $("inningsTotal").textContent = inn.runs;
+  $("scorerSummary").replaceChildren();
+  match.innings.forEach((item, index) => {
+    if (index > match.current) return;
+    const row = document.createElement("div");
+    const round = index >= 2 ? " · SO " + Math.floor(index / 2) : "";
+    row.textContent = match.names[teamIndex(index)] + round + ": " +
+      item.runs + "/" + item.wickets + " (" + oversText(item.legalBalls) + ")";
+    $("scorerSummary").appendChild(row);
+  });
 
-  $("targetDisplay").textContent = match.current === 1 &&
-    match.target !== null ? " · Target: " + match.target : "";
+  $("targetDisplay").textContent = match.current % 2 === 1 &&
+    match.target !== null ? " · Target: " + match.target + " · Need " + Math.max(0, match.target - inn.runs) + " from " + Math.max(0, totalOvers() - inn.legalBalls) + " balls" : "";
 
   $("matchStatus").textContent = message;
   $("resultBanner").textContent = match.finished ? message : "";
   $("resultBanner").classList.toggle("hidden", !match.finished);
-  $("undoBtn").disabled = undoStack.length === 0;
+  $("superOverBtn").classList.toggle("hidden", !isTied());
+  $("superOverBtn").disabled = otherTabChanged;
+  $("undoBtn").disabled = otherTabChanged || undoStack.length === 0;
 
-  const disabled = match.finished || inn.finished;
+  const disabled = otherTabChanged || match.finished || inn.finished;
   document.querySelectorAll("[data-runs]").forEach(button => {
     button.disabled = disabled;
   });
@@ -577,8 +652,8 @@ function render() {
     $(id).disabled = disabled;
   });
 
-  $("endInningsBtn").disabled = match.finished || inn.finished;
-  $("finishBtn").disabled = match.finished;
+  $("endInningsBtn").disabled = disabled;
+  $("finishBtn").disabled = disabled || match.current % 2 === 0;
 
   $("recentEvents").innerHTML = "";
   if (!inn.events.length) {
@@ -593,9 +668,9 @@ function render() {
 
       const right = document.createElement("span");
       right.className = "muted";
-      right.textContent = event.wicket
+      right.textContent = "Over " + event.overBall + " · " + (event.wicket
         ? "Wicket"
-        : (event.legalBall ? "Legal ball" : "Extra");
+        : (event.legalBall ? "Legal ball" : "Extra"));
 
       row.append(left, right);
       $("recentEvents").appendChild(row);
@@ -615,11 +690,14 @@ $("wideBtn").addEventListener("click", () => addExtra("WIDE"));
 $("noBallBtn").addEventListener("click", () => addExtra("NO-BALL"));
 $("wicketBtn").addEventListener("click", addWicket);
 $("undoBtn").addEventListener("click", undo);
+$("superOverBtn").addEventListener("click", () => {
+  if (confirm("Start a Super Over? Each team gets one over and two wickets.")) startSuperOver();
+});
 $("endInningsBtn").addEventListener("click", () => {
   if (confirm("End this innings?")) endInnings();
 });
 $("finishBtn").addEventListener("click", () => {
-  if (confirm("Finish the match now?")) finishMatch();
+  if (confirm("Finish the match early? The result will use the scores currently recorded.")) finishMatch();
 });
 $("startBtn").addEventListener("click", startMatch);
 
@@ -630,8 +708,13 @@ $("newBtn").addEventListener("click", () => {
   match = null;
   cloudMatchId = null;
   undoStack = [];
+  undoMessages = [];
   message = "Match in progress";
-  localStorage.removeItem(STORAGE_KEY);
+  ownerUid = null;
+  otherTabChanged = false;
+  try { localStorage.removeItem(STORAGE_KEY); } catch {
+    $("setupStatus").textContent = "Browser backup could not be cleared.";
+  }
   showSetup();
 });
 
@@ -684,13 +767,39 @@ $("shareMatchBtn").addEventListener("click", async () => {
 });
 	
 
+$("retrySyncBtn").addEventListener("click", async () => {
+  try { await signInAnonymously(auth); save(); }
+  catch { $("syncMessage").textContent = "Could not sign in. Check your connection and try again."; }
+});
+
+$("exportBtn").addEventListener("click", () => {
+  if (!match) return;
+  const blob = new Blob([JSON.stringify({ match, message, cloudMatchId }, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = "turf-wars-" + (cloudMatchId || "match") + ".json";
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+});
+
+window.addEventListener("storage", event => {
+  if (event.key !== STORAGE_KEY && event.key !== null) return;
+  if (!match) return;
+  otherTabChanged = true;
+  $("syncMessage").textContent = "Another tab changed the saved match. Reload this page before scoring to avoid overwriting it.";
+  render();
+});
+
+onValue(ref(db, ".info/connected"), snapshot => {
+  cloudConnected = snapshot.val() === true;
+  if (!cloudConnected && match) $("cloudStatus").textContent = localBackupOk ? "Offline · browser backup" : "Offline · backup failed";
+  if (cloudConnected && match && auth.currentUser && !otherTabChanged) save();
+});
+
 // Restore a locally saved match when the page is reopened.
 if (restoreLocal()) {
-  if (match.finished) {
-    showGame();
-  } else {
-    showGame();
-  }
+  showGame();
 
   // Re-authenticate in this browser session before attempting cloud writes.
   signInAnonymously(auth).then(() => {

@@ -262,31 +262,21 @@
       <button class="refresh" id="refreshButton">Refresh</button>
     </div>
 
-    <div id="status" class="status">Connecting to Turf Wars...</div>
+    <div class="tw-history-tools">
+      <div><label for="searchMatches">Search teams</label><input id="searchMatches" type="search" placeholder="Team name" maxlength="80"></div>
+      <div><label for="filterMatches">Match status</label><select id="filterMatches"><option value="all">All matches</option><option value="live">In progress</option><option value="finished">Completed</option></select></div>
+    </div>
+    <div id="status" class="status" role="status" aria-live="polite">Connecting to Turf Wars...</div>
     <div id="matchList"></div>
+    <button id="loadMoreButton" class="hidden">Load older matches</button>
   </main>
 
   <footer>Turf Wars · Cricket memories, saved live</footer>
 
   <script type="module">
-    import { initializeApp }
-      from "https://www.gstatic.com/firebasejs/13.0.0/firebase-app.js";
-    import { getDatabase, ref, onValue }
+    import { db } from "./firebase-client.js";
+    import { ref, onValue, query, orderByKey, limitToLast }
       from "https://www.gstatic.com/firebasejs/13.0.0/firebase-database.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyC000ztA_x_KxGnKva4zqBZ7DCwOhQxZQA",
-      authDomain: "turf-wars-b6ea0.firebaseapp.com",
-      databaseURL: "https://turf-wars-b6ea0-default-rtdb.asia-southeast1.firebasedatabase.app",
-      projectId: "turf-wars-b6ea0",
-      storageBucket: "turf-wars-b6ea0.firebasestorage.app",
-      messagingSenderId: "231555430819",
-      appId: "1:231555430819:web:e02b15ad623d62031a8216",
-      measurementId: "G-2SVQE2VBKT"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
 
     const status = document.getElementById("status");
     const matchList = document.getElementById("matchList");
@@ -295,6 +285,10 @@
 
     let allMatches = [];
     let unsubscribe = null;
+    let matchLimit = 50;
+    const search = document.getElementById("searchMatches");
+    const filter = document.getElementById("filterMatches");
+    const loadMore = document.getElementById("loadMoreButton");
 
     function oversFromBalls(balls) {
       const count = Number(balls) || 0;
@@ -341,7 +335,16 @@
       matchCount.textContent =
         `${allMatches.length} match${allMatches.length === 1 ? "" : "es"}`;
 
-      allMatches.forEach(({ id, record }, index) => {
+      const term = search.value.trim().toLowerCase();
+      const visible = allMatches.filter(({record}) =>
+        record.match.names.some(name => String(name).toLowerCase().includes(term)) &&
+        (filter.value === "all" || (filter.value === "finished" ? record.match.finished === true : record.match.finished !== true)));
+      matchCount.textContent = `${visible.length} of ${allMatches.length} loaded matches`;
+      if (!visible.length) {
+        showEmpty("No matching matches", "Try another team name or status filter.");
+        return;
+      }
+      visible.forEach(({ id, record }) => {
         const match = record.match;
         const names = match.names || ["Team 1", "Team 2"];
         const innings = match.innings || [];
@@ -351,7 +354,7 @@
 
         const top = createElement("div", "match-top");
         top.append(
-          createElement("div", "match-number", `Match ${allMatches.length - index}`),
+          createElement("div", "match-number", Number(record.updatedAt) > 0 ? new Date(Number(record.updatedAt)).toLocaleString([], {dateStyle:"medium",timeStyle:"short"}) : "Saved match"),
           createElement("span", "badge", finished ? "COMPLETED" : "IN PROGRESS")
         );
 
@@ -374,10 +377,22 @@
             createElement(
               "div",
               "overs",
-              inn ? `Overs ${oversFromBalls(inn.legalBalls)}` : "Not started"
+              i > match.current ? "Yet to bat" : inn ? `Overs ${oversFromBalls(inn.legalBalls)}` : "Not started"
             )
           );
 
+          scores.append(box);
+        });
+
+        // Keep regulation scores visible and list each Super Over separately.
+        innings.slice(2).forEach((inn, offset) => {
+          const index = offset + 2;
+          const box = createElement("div", "score-box");
+          box.append(
+            createElement("div", "score-team", `${names[inn.teamIndex ?? index % 2]} · Super Over ${Math.floor(index / 2)}`),
+            createElement("div", "score", scoreText(inn)),
+            createElement("div", "overs", `Overs ${oversFromBalls(inn.legalBalls)}`)
+          );
           scores.append(box);
         });
 
@@ -425,22 +440,26 @@
       matchCount.textContent = "Loading...";
 
       unsubscribe = onValue(
-        ref(db, "history"),
+        query(ref(db, "history"), orderByKey(), limitToLast(matchLimit)),
         (snapshot) => {
           if (!snapshot.exists()) {
+            loadMore.classList.add("hidden");
             allMatches = [];
             renderMatches();
             return;
           }
 
           const data = snapshot.val();
+          loadMore.classList.toggle("hidden", Object.keys(data).length < matchLimit);
 
           allMatches = Object.entries(data)
             .filter(([, record]) =>
               record &&
               record.public === true &&
               record.match &&
-              record.match.names
+              Array.isArray(record.match.names) &&
+              Array.isArray(record.match.innings) &&
+              record.match.innings.every(inn => inn && typeof inn === "object")
             )
             .map(([id, record]) => ({ id, record }))
             .sort((a, b) => {
@@ -462,6 +481,9 @@
       );
     }
 
+    search.addEventListener("input", renderMatches);
+    filter.addEventListener("change", renderMatches);
+    loadMore.addEventListener("click", () => { matchLimit += 50; loadMatches(); });
     refreshButton.addEventListener("click", loadMatches);
     loadMatches();
   </script>
