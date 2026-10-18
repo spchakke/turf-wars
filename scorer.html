@@ -249,6 +249,22 @@ footer { text-align:center; color:var(--muted); font-size:12px; padding:10px; }
     inn.legalBalls++;
     if (inn.legalBalls >= match.maxOvers * 6) inn.finished = true;
   }
+  
+  function legalBall() {
+    const inn = currentInnings();
+    inn.legalBalls++;
+
+    if (inn.legalBalls >= match.maxOvers * 6) {
+      inn.finished = true;
+
+      if (match.current === 0) {
+        startChase();
+        } else {
+        finishMatch();
+        }
+      }
+    }  
+
 
   function addEvent(label, runs, options = {}) {
     if (!match || match.finished || match.current > 1) return;
