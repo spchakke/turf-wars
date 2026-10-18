@@ -215,6 +215,7 @@
       <p class="muted">Share this link so others can follow the live score.</p>
       <p><a id="spectatorLink" href="#" target="_blank" rel="noopener">Preparing link…</a></p>
       <button id="copyLinkBtn" class="primary" style="width:100%">Copy spectator link</button>
+			<button id="shareMatchBtn" class="primary" style="width:100%;margin-top:10px">Share Match</button>
       <p id="linkStatus" class="status" role="status"></p>
     </div>
 
@@ -670,6 +671,40 @@ $("copyLinkBtn").addEventListener("click", async () => {
       "Copy was blocked. Select and copy the link above.";
   }
 });
+
+$("shareMatchBtn").addEventListener("click", async () => {
+  if (!cloudMatchId) {
+    $("linkStatus").textContent = "Start a match first.";
+    return;
+  }
+
+  const shareUrl = $("spectatorLink").href;
+
+  try {
+    if (navigator.share) {
+      await navigator.share({
+        title: "Turf Wars Live Match",
+        text: "Follow the live cricket score on Turf Wars!",
+        url: shareUrl
+      });
+    } else {
+      await navigator.clipboard.writeText(shareUrl);
+      $("linkStatus").textContent =
+        "Sharing unavailable. Spectator link copied!";
+    }
+  } catch (error) {
+    if (error.name === "AbortError") return;
+
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      $("linkStatus").textContent = "Spectator link copied!";
+    } catch (copyError) {
+      $("linkStatus").textContent =
+        "Sharing failed. Select and copy the spectator link above.";
+    }
+  }
+});
+	
 
 // Restore a locally saved match when the page is reopened.
 if (restoreLocal()) {
